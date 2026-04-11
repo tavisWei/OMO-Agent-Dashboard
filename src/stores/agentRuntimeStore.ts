@@ -3,10 +3,9 @@ import { create } from 'zustand';
 export type AgentRuntimeStatus = 'idle' | 'running' | 'thinking' | 'error' | 'offline';
 
 export interface AgentRuntime {
-  id: string;
-  name: string;
+  agentId: string;
   status: AgentRuntimeStatus;
-  lastActivity: string | null;
+  lastUpdate: string | null;
   sessionName: string | null;
 }
 
@@ -27,13 +26,13 @@ export const useAgentRuntimeStore = create<AgentRuntimeState>((set) => ({
   
   updateAgent: (agent) => set((state) => {
     const newAgents = new Map(state.agents);
-    newAgents.set(agent.id, agent);
+    newAgents.set(agent.agentId, agent);
     return { agents: newAgents };
   }),
   
   setAgents: (agents) => set(() => {
     const newAgents = new Map();
-    agents.forEach((agent) => newAgents.set(agent.id, agent));
+    agents.forEach((agent) => newAgents.set(agent.agentId, agent));
     return { agents: newAgents };
   }),
 }));

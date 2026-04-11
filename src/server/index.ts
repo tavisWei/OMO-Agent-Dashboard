@@ -9,6 +9,10 @@ import activityLogsRouter from './routes/activity-logs.js';
 import chatRouter from './routes/chat.js';
 import tmuxRouter from './routes/tmux.js';
 import { initializeWebSocketServer } from './websocket.js';
+import { agentStatusMonitor } from './agentStatus.js';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+const execAsync = promisify(exec);
 
 const app = express();
 const PORT = 3001;
@@ -76,19 +80,64 @@ async function start() {
     await getDatabase();
     console.log('Database initialized');
     
-    // Sync agents from OMO config
     await syncOMOConfig();
     
     const server = app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
     
-    // Initialize WebSocket server with agent status monitoring
     initializeWebSocketServer(server);
+    
+    startTmuxPolling();
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
   }
- }
+}
+
+function startTmuxPolling() {
+  const pollInterval = 5000;
+  
+  async function pollTmuxSessions() {
+    try {
+      const { stdout } = await execAsync(
+        'tmux list-sessions -F "#{session_name}|#{session_activity}|#{session_windows}" 2>/dev/null || echo ""'
+      );
+      
+      const sessions = stdout.trim().split('\n')
+        .filter(line => line && line.includes('|'))
+        .map(line => {
+          const parts = line.split('|');
+          const name = parts[0] || '';
+          const activity = parts[1] || '0';
+          const windows = parts[2] || '1';
+          
+          const activityTime = parseInt(activity) || 0;
+          const now = Math.floor(Date.now() / 1000);
+          const isActive = (now - activityTime) < 30;
+          
+          return {
+            name,
+            status: isActive ? 'running' : 'idle',
+            windowCount: parseInt(windows) || 1,
+          };
+        });
+      
+      sessions.forEach(session => {
+        const status = session.status as 'idle' | 'running' | 'thinking' | 'error' | 'offline';
+        agentStatusMonitor.updateStatus(session.name, status, session.name);
+      });
+      
+      if (sessions.length > 0) {
+        console.log(`[tmux-polling] ${sessions.length} sessions, statuses updated`);
+      }
+    } catch (error) {
+      // tmux not available or error - silent fail
+    }
+  }
+  
+  pollTmuxSessions();
+  setInterval(pollTmuxSessions, pollInterval);
+}
 
 start();

@@ -5,6 +5,7 @@
   },
   "nav": {
     "dashboard": "仪表盘",
+    "tasks": "任务",
     "chat": "对话",
     "activity": "活动",
     "analytics": "分析",

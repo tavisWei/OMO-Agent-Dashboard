@@ -17,14 +17,14 @@ const statusLabels: Record<AgentRuntime['status'], string> = {
 };
 
 export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
-  const lastActivity = agent.lastActivity
-    ? new Date(agent.lastActivity).toLocaleTimeString()
+  const lastUpdate = agent.lastUpdate
+    ? new Date(agent.lastUpdate).toLocaleTimeString()
     : 'Never';
   
   return (
     <div className="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="font-medium">{agent.name}</h3>
+        <h3 className="font-medium">{agent.agentId}</h3>
         <span
           className={`w-3 h-3 rounded-full ${statusColors[agent.status]}`}
           title={statusLabels[agent.status]}
@@ -32,7 +32,7 @@ export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
       </div>
       <div className="text-sm text-[var(--color-text-secondary)]">
         <p>Status: {statusLabels[agent.status]}</p>
-        <p>Last active: {lastActivity}</p>
+        <p>Last update: {lastUpdate}</p>
         {agent.sessionName && <p>Session: {agent.sessionName}</p>}
       </div>
     </div>
@@ -57,7 +57,7 @@ export function AgentRuntimePanel() {
       ) : (
         <div className="grid grid-cols-2 gap-4">
           {Array.from(agents.values()).map((agent) => (
-            <AgentRuntimeCard key={agent.id} agent={agent} />
+            <AgentRuntimeCard key={agent.agentId} agent={agent} />
           ))}
         </div>
       )}

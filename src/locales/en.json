@@ -5,6 +5,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "tasks": "Tasks",
     "chat": "Chat",
     "activity": "Activity",
     "analytics": "Analytics",

@@ -6,6 +6,7 @@ import { SettingsPage } from './components/SettingsPage';
 import { ActivityFeed } from './components/ActivityFeed';
 import { AgentChat } from './components/AgentChat';
 import { AgentGrid } from './components/AgentGrid';
+import { KanbanBoard } from './components/KanbanBoard';
 import AgentConfigPanel from './components/AgentConfigPanel';
 import { useThemeStore } from './stores/themeStore';
 import { useAgentStore } from './stores/agentStore';
@@ -127,6 +128,14 @@ function Chat() {
   );
 }
 
+function Tasks() {
+  return (
+    <div className="h-full">
+      <KanbanBoard />
+    </div>
+  );
+}
+
 function App() {
   const { theme } = useThemeStore();
 
@@ -150,6 +159,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/project/:id" element={<ProjectDetail />} />
             <Route path="/agent/:id" element={<AgentDetail />} />
+            <Route path="/tasks" element={<Tasks />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/activity" element={<Activity />} />
