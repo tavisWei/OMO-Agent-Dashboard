@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSettingsStore, ThemePreference, getActualTheme } from '../stores/settingsStore';
 import { useThemeStore } from '../stores/themeStore';
 
@@ -102,6 +103,7 @@ function Button({ children, onClick, variant = 'primary', disabled = false, clas
 }
 
 export function SettingsPage() {
+  const { t } = useTranslation();
   const { themePreference, setThemePreference, omoConfigPath, setOmoConfigPath, apiKey, setApiKey, appVersion } = useSettingsStore();
   const { theme: actualTheme, setTheme } = useThemeStore();
   const [omoPathInput, setOmoPathInput] = useState(omoConfigPath);
@@ -112,9 +114,9 @@ export function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const themeOptions = [
-    { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' },
-    { value: 'system', label: 'System' },
+    { value: 'light', label: t('settings.light') },
+    { value: 'dark', label: t('settings.dark') },
+    { value: 'system', label: t('settings.system') },
   ];
 
   const handleThemeChange = (newPreference: string) => {
@@ -187,11 +189,11 @@ export function SettingsPage() {
       if (data.agents) localStorage.setItem('omo-agents', JSON.stringify(data.agents));
       if (data.tasks) localStorage.setItem('omo-tasks', JSON.stringify(data.tasks));
 
-      setImportMessage({ type: 'success', text: 'Data imported successfully. Please refresh the page.' });
+      setImportMessage({ type: 'success', text: t('settings.importSuccess') });
       setOmoPathInput(useSettingsStore.getState().omoConfigPath);
       setApiKeyInput(useSettingsStore.getState().apiKey);
     } catch (error) {
-      setImportMessage({ type: 'error', text: 'Failed to import: Invalid backup file' });
+      setImportMessage({ type: 'error', text: t('settings.importFailed') });
     } finally {
       setIsImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -201,70 +203,70 @@ export function SettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--color-text)]">Settings</h1>
-        <p className="text-sm text-[var(--color-text-secondary)] mt-1">Configure your OMO Agent Dashboard preferences</p>
+        <h1 className="text-2xl font-bold text-[var(--color-text)]">{t('settings.title')}</h1>
+        <p className="text-sm text-[var(--color-text-secondary)] mt-1">{t('settings.subtitle')}</p>
       </div>
 
-      <SettingsSection title="Appearance" description="Customize the look and feel of the application">
+      <SettingsSection title={t('settings.appearance')} description={t('settings.appearanceDesc')}>
         <div className="flex items-end gap-4">
           <div className="flex-1">
             <Select
-              label="Theme"
+              label={t('settings.theme')}
               value={themePreference}
               onChange={handleThemeChange}
               options={themeOptions}
             />
           </div>
           <div className="text-sm text-[var(--color-text-secondary)] pb-2">
-            Current: <span className="capitalize font-medium text-[var(--color-text)]">{actualTheme}</span>
+            {t('settings.current')}: <span className="capitalize font-medium text-[var(--color-text)]">{actualTheme}</span>
           </div>
         </div>
       </SettingsSection>
 
-      <SettingsSection title="OMO Configuration" description="Configure paths and endpoints for OMO integration">
+      <SettingsSection title={t('settings.omoConfig')} description={t('settings.omoConfigDesc')}>
         <div className="space-y-4">
           <TextInput
-            label="OMO Config Path"
+            label={t('settings.omoPath')}
             value={omoPathInput}
             onChange={setOmoPathInput}
-            placeholder="~/.omo/config.yaml"
+            placeholder={t('settings.omoPathPlaceholder')}
           />
           <Button onClick={handleSaveOmoPath} variant="secondary">
-            Save Path
+            {t('settings.savePath')}
           </Button>
         </div>
       </SettingsSection>
 
-      <SettingsSection title="API Configuration" description="Configure API keys for cost calculation">
+      <SettingsSection title={t('settings.apiConfig')} description={t('settings.apiConfigDesc')}>
         <div className="space-y-4">
           <TextInput
-            label="API Key"
+            label={t('settings.apiKey')}
             value={apiKeyInput}
             onChange={setApiKeyInput}
-            placeholder="Enter your API key"
+            placeholder={t('settings.apiKeyPlaceholder')}
             type="password"
           />
           <Button onClick={handleSaveApiKey} variant="secondary">
-            Save API Key
+            {t('settings.saveApiKey')}
           </Button>
           <p className="text-xs text-[var(--color-text-secondary)]">
-            Your API key is stored locally and used only for cost calculations.
+            {t('settings.apiKeyNote')}
           </p>
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Data Management" description="Export or import your dashboard data">
+      <SettingsSection title={t('settings.dataManagement')} description={t('settings.dataManagementDesc')}>
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <Button onClick={handleExport} variant="secondary" disabled={isExporting}>
-              {isExporting ? 'Exporting...' : 'Export Data'}
+              {isExporting ? t('settings.exporting') : t('settings.exportData')}
             </Button>
             <Button
               onClick={() => fileInputRef.current?.click()}
               variant="secondary"
               disabled={isImporting}
             >
-              {isImporting ? 'Importing...' : 'Import Backup'}
+              {isImporting ? t('settings.importing') : t('settings.importBackup')}
             </Button>
             <input
               ref={fileInputRef}
@@ -282,19 +284,19 @@ export function SettingsPage() {
             </div>
           )}
           <p className="text-xs text-[var(--color-text-secondary)]">
-            Export creates a JSON backup of your settings, projects, agents, and tasks.
+            {t('settings.exportNote')}
           </p>
         </div>
       </SettingsSection>
 
-      <SettingsSection title="About">
+      <SettingsSection title={t('settings.about')}>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-[var(--color-text-secondary)]">Version</span>
+            <span className="text-sm text-[var(--color-text-secondary)]">{t('settings.version')}</span>
             <span className="text-sm font-medium text-[var(--color-text)]">{appVersion}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-[var(--color-text-secondary)]">Build</span>
+            <span className="text-sm text-[var(--color-text-secondary)]">{t('settings.build')}</span>
             <span className="text-sm font-medium text-[var(--color-text)]">Vite + React</span>
           </div>
         </div>

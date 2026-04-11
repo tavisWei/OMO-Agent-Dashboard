@@ -1,10 +1,17 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../stores/themeStore';
 import { useProjectStore } from '../stores/projectStore';
 
 export function Header() {
+  const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useThemeStore();
   const { projects, selectedProjectId, selectProject } = useProjectStore();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'zh' ? 'en' : 'zh';
+    i18n.changeLanguage(newLang);
+  };
 
   return (
     <header className="h-14 bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)] flex items-center justify-between px-4">
@@ -20,7 +27,7 @@ export function Header() {
             <circle cx="16" cy="16" r="6" fill="currentColor" />
             <path d="M16 2V8M16 24V30M2 16H8M24 16H30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          <span className="font-bold text-lg">OMO Agent</span>
+          <span className="font-bold text-lg">{t('app.title')}</span>
         </Link>
 
         <select
@@ -28,7 +35,7 @@ export function Header() {
           onChange={(e) => selectProject(e.target.value || null)}
           className="bg-[var(--color-bg-tertiary)] text-[var(--color-text)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
         >
-          <option value="">Select Project</option>
+          <option value="">{t('projects.select')}</option>
           {projects.map((project) => (
             <option key={project.id} value={project.id}>
               {project.name}
@@ -38,6 +45,14 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={toggleLanguage}
+          className="p-2 rounded-md hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors text-sm font-medium"
+          aria-label="Toggle language"
+        >
+          {i18n.language === 'zh' ? 'EN' : '中'}
+        </button>
+
         <button
           onClick={toggleTheme}
           className="p-2 rounded-md hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors"

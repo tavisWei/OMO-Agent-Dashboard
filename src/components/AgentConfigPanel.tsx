@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface Agent {
   id: number;
@@ -35,6 +36,7 @@ export default function AgentConfigPanel({
   onClose,
   onSave,
 }: AgentConfigPanelProps) {
+  const { t } = useTranslation();
   const [model, setModel] = useState('');
   const [temperature, setTemperature] = useState(0.7);
   const [topP, setTopP] = useState(0.9);
@@ -63,16 +65,16 @@ export default function AgentConfigPanel({
     const newErrors: { model?: string; maxTokens?: string } = {};
 
     if (!model.trim()) {
-      newErrors.model = '模型不能为空';
+      newErrors.model = t('agents.modelRequired');
     }
 
     if (maxTokens < 1 || maxTokens > 100000) {
-      newErrors.maxTokens = 'Max Tokens 必须在 1-100000 之间';
+      newErrors.maxTokens = t('agents.maxTokensRange');
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [model, maxTokens]);
+  }, [model, maxTokens, t]);
 
   const handleSave = async () => {
     if (!validate() || !agent) return;
@@ -98,7 +100,7 @@ export default function AgentConfigPanel({
       onClose();
     } catch (error) {
       console.error('Error saving agent config:', error);
-      alert('保存失败，请重试');
+      alert(t('agents.saveFailed'));
     } finally {
       setIsSaving(false);
     }
@@ -126,12 +128,12 @@ export default function AgentConfigPanel({
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            编辑智能体: {agent?.name}
+            {t('agents.edit')}: {agent?.name}
           </h2>
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            aria-label="关闭"
+            aria-label={t('common.close')}
           >
             <svg
               className="w-5 h-5 text-gray-500"
@@ -152,7 +154,7 @@ export default function AgentConfigPanel({
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              模型
+              {t('agents.model')}
             </label>
             <div className="relative">
               <input
@@ -164,7 +166,7 @@ export default function AgentConfigPanel({
                   if (!e.target.value) setModel('');
                 }}
                 onFocus={() => setShowModelDropdown(true)}
-                placeholder="搜索或选择模型..."
+                placeholder={t('agents.searchModel')}
                 className={`w-full px-4 py-2.5 rounded-lg border ${
                   errors.model
                     ? 'border-red-500 focus:ring-red-500'
@@ -199,21 +201,21 @@ export default function AgentConfigPanel({
                     ))
                   ) : (
                     <div className="px-4 py-2.5 text-gray-500 dark:text-gray-400">
-                      未找到匹配的模型
+                      {t('agents.noModelFound')}
                     </div>
                   )}
                 </div>
               )}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              可用模型: {AVAILABLE_MODELS.join(', ')}
+              {t('agents.availableModels')}: {AVAILABLE_MODELS.join(', ')}
             </p>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Temperature
+                {t('agents.temperature')}
               </label>
               <span className="text-sm font-mono text-blue-600 dark:text-blue-400">
                 {temperature.toFixed(1)}
@@ -233,14 +235,14 @@ export default function AgentConfigPanel({
               <span>2</span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              控制输出的随机性。较低的值使输出更确定性，较高的值使输出更有创意。
+              {t('agents.tempDescription')}
             </p>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Top P
+                {t('agents.topP')}
               </label>
               <span className="text-sm font-mono text-blue-600 dark:text-blue-400">
                 {topP.toFixed(2)}
@@ -260,13 +262,13 @@ export default function AgentConfigPanel({
               <span>1</span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              核采样阈值。较低的值只保留最可能的 token，较高的值允许更多样化的输出。
+              {t('agents.topPDescription')}
             </p>
           </div>
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Max Tokens
+              {t('agents.maxTokens')}
             </label>
             <input
               type="number"
@@ -287,7 +289,7 @@ export default function AgentConfigPanel({
               <p className="mt-1 text-sm text-red-500">{errors.maxTokens}</p>
             )}
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              单次生成的最大 token 数量 (1-100000)
+              {t('agents.maxTokensDescription')}
             </p>
           </div>
         </div>
@@ -299,7 +301,7 @@ export default function AgentConfigPanel({
             disabled={isSaving}
             className="px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
-            取消
+            {t('common.cancel')}
           </button>
           <button
             type="button"
@@ -328,10 +330,10 @@ export default function AgentConfigPanel({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                保存中...
+                {t('agents.saving')}
               </>
             ) : (
-              '保存配置'
+              t('agents.save')
             )}
           </button>
         </div>

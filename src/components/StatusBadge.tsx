@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { AgentStatus } from '../types';
 
 interface StatusBadgeProps {
@@ -5,15 +6,25 @@ interface StatusBadgeProps {
   showLabel?: boolean;
 }
 
-const statusConfig: Record<AgentStatus, { color: string; label: string }> = {
-  running: { color: 'bg-emerald-500', label: 'Running' },
-  idle: { color: 'bg-slate-400', label: 'Idle' },
-  error: { color: 'bg-red-500', label: 'Error' },
-  stopped: { color: 'bg-slate-600', label: 'Stopped' },
-};
-
 export function StatusBadge({ status, showLabel = true }: StatusBadgeProps) {
-  const config = statusConfig[status] ?? statusConfig.idle;
+  const { t } = useTranslation();
+
+  const getStatusConfig = (s: AgentStatus) => {
+    switch (s) {
+      case 'running':
+        return { color: 'bg-emerald-500', label: t('status.running') };
+      case 'idle':
+        return { color: 'bg-slate-400', label: t('status.idle') };
+      case 'error':
+        return { color: 'bg-red-500', label: t('status.error') };
+      case 'stopped':
+        return { color: 'bg-slate-600', label: t('status.stopped') };
+      default:
+        return { color: 'bg-slate-400', label: t('status.idle') };
+    }
+  };
+
+  const config = getStatusConfig(status);
 
   return (
     <div className="flex items-center gap-1.5">

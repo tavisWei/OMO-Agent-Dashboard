@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   BarChart,
   Bar,
@@ -36,6 +37,7 @@ function formatCost(cost: number): string {
 }
 
 export function CostOverview() {
+  const { t } = useTranslation();
   const [dateRange, setDateRange] = useState<DateRange>('week');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
@@ -146,7 +148,7 @@ export function CostOverview() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[var(--color-text)]">Cost Overview</h1>
+        <h1 className="text-2xl font-bold text-[var(--color-text)]">{t('cost.title')}</h1>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg p-1">
             {(['today', 'week', 'month', 'custom'] as DateRange[]).map((range) => (
@@ -159,7 +161,7 @@ export function CostOverview() {
                     : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
                 }`}
               >
-                {range === 'today' ? 'Today' : range === 'week' ? 'This Week' : range === 'month' ? 'This Month' : 'Custom'}
+                {range === 'today' ? t('cost.today') : range === 'week' ? t('cost.thisWeek') : range === 'month' ? t('cost.thisMonth') : t('cost.custom')}
               </button>
             ))}
           </div>
@@ -172,7 +174,7 @@ export function CostOverview() {
                 onChange={(e) => setCustomStart(e.target.value)}
                 className="px-3 py-1.5 text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-md text-[var(--color-text)]"
               />
-              <span className="text-[var(--color-text-secondary)]">to</span>
+              <span className="text-[var(--color-text-secondary)]">{t('cost.to')}</span>
               <input
                 type="date"
                 value={customEnd}
@@ -190,57 +192,57 @@ export function CostOverview() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Export CSV
+            {t('cost.exportCSV')}
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-          <p className="text-sm text-[var(--color-text-secondary)] mb-1">Total Tokens</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-1">{t('cost.totalTokens')}</p>
           <p className="text-2xl font-bold text-[var(--color-text)]">
             {loading ? '—' : formatTokens(data?.summary.total_tokens ?? 0)}
           </p>
           <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-            {formatTokens(data?.summary.total_input_tokens ?? 0)} in / {formatTokens(data?.summary.total_output_tokens ?? 0)} out
+            {t('cost.inOut', { input: formatTokens(data?.summary.total_input_tokens ?? 0), output: formatTokens(data?.summary.total_output_tokens ?? 0) })}
           </p>
         </div>
 
         <div className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-          <p className="text-sm text-[var(--color-text-secondary)] mb-1">Total Cost</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-1">{t('cost.totalCost')}</p>
           <p className="text-2xl font-bold text-emerald-400">
             {loading ? '—' : formatCost(data?.summary.total_cost ?? 0)}
           </p>
           <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-            {formatCost(data?.summary.total_cost ?? 0)} total spent
+            {formatCost(data?.summary.total_cost ?? 0)} {t('cost.totalSpent')}
           </p>
         </div>
 
         <div className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-          <p className="text-sm text-[var(--color-text-secondary)] mb-1">API Calls</p>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-1">{t('cost.apiCalls')}</p>
           <p className="text-2xl font-bold text-[var(--color-text)]">
             {loading ? '—' : data?.summary.total_api_calls ?? 0}
           </p>
           <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-            requests made
+            {t('cost.requestsMade')}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-6">
         <div className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-          <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">Daily Token Usage</h3>
+          <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">{t('cost.dailyUsage')}</h3>
           <div className="h-64">
             {loading ? (
               <div className="flex items-center justify-center h-full text-[var(--color-text-secondary)]">
-                Loading...
+                {t('cost.loading')}
               </div>
             ) : dailyData.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-[var(--color-text-secondary)]">
                 <svg className="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <p>No data available</p>
+                <p>{t('cost.noData')}</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -257,8 +259,8 @@ export function CostOverview() {
                     }}
                     formatter={(value: any) => [formatTokens(value as number), 'Tokens']}
                   />
-                  <Bar dataKey="input_tokens" stackId="a" fill="#6366f1" name="Input" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="output_tokens" stackId="a" fill="#a855f7" name="Output" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="input_tokens" stackId="a" fill="#6366f1" name={t('cost.input')} radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="output_tokens" stackId="a" fill="#a855f7" name={t('cost.output')} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -266,18 +268,18 @@ export function CostOverview() {
         </div>
 
         <div className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-          <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">Agent Distribution</h3>
+          <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">{t('cost.agentDistribution')}</h3>
           <div className="h-64">
             {loading ? (
               <div className="flex items-center justify-center h-full text-[var(--color-text-secondary)]">
-                Loading...
+                {t('cost.loading')}
               </div>
             ) : agentDistribution.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-[var(--color-text-secondary)]">
                 <svg className="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
                 </svg>
-                <p>No data available</p>
+                <p>{t('cost.noData')}</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -304,7 +306,7 @@ export function CostOverview() {
                       borderRadius: '8px',
                       color: 'var(--color-text)'
                     }}
-                    formatter={(value: any, _name: any, props: any) => [formatTokens(value as number), `Cost: ${formatCost(props.payload.cost)}`]}
+                    formatter={(value: any, _name: any, props: any) => [formatTokens(value as number), `${t('cost.estCost')}: ${formatCost(props.payload.cost)}`]}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -315,33 +317,33 @@ export function CostOverview() {
 
       <div className="rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] overflow-hidden">
         <div className="p-5 border-b border-[var(--color-border)]">
-          <h3 className="text-lg font-semibold text-[var(--color-text)]">Agent Breakdown</h3>
+          <h3 className="text-lg font-semibold text-[var(--color-text)]">{t('cost.agentBreakdown')}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-[var(--color-bg-tertiary)]">
               <tr>
-                <th className="px-5 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Agent</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Model</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Input Tokens</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Output Tokens</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Total Tokens</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Est. Cost</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">API Calls</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Share</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('cost.agent')}</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('cost.model')}</th>
+                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('cost.inputTokens')}</th>
+                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('cost.outputTokens')}</th>
+                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('cost.totalTokens')}</th>
+                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('cost.estCost')}</th>
+                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('cost.apiCalls')}</th>
+                <th className="px-5 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('cost.share')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
               {loading ? (
                 <tr>
                   <td colSpan={8} className="px-5 py-8 text-center text-[var(--color-text-secondary)]">
-                    Loading...
+                    {t('cost.loading')}
                   </td>
                 </tr>
               ) : data?.by_agent.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-5 py-8 text-center text-[var(--color-text-secondary)]">
-                    No cost data available
+                    {t('cost.noData')}
                   </td>
                 </tr>
               ) : (

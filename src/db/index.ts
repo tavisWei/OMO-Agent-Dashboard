@@ -173,6 +173,12 @@ export function deleteAgent(id: number): boolean {
   return database.getRowsModified() > 0;
 }
 
+export function clearAgents(): void {
+  const database = getDatabaseSync();
+  database.run('DELETE FROM agents');
+  saveDatabase();
+}
+
 // Task CRUD
 export function createTask(
   title: string,

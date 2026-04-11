@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface NewProjectDialogProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface NewProjectDialogProps {
 const API_BASE = 'http://localhost:3001/api';
 
 export function NewProjectDialog({ isOpen, onClose, onCreated }: NewProjectDialogProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export function NewProjectDialog({ isOpen, onClose, onCreated }: NewProjectDialo
 
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError('Project name is required');
+      setError(t('projects.nameRequired'));
       return;
     }
 
@@ -70,7 +72,7 @@ export function NewProjectDialog({ isOpen, onClose, onCreated }: NewProjectDialo
 
       <div className="relative bg-zinc-900 rounded-xl shadow-2xl w-full max-w-md mx-4 border border-zinc-700">
         <div className="flex items-center justify-between p-5 border-b border-zinc-800">
-          <h2 className="text-lg font-semibold text-zinc-100">Create New Project</h2>
+          <h2 className="text-lg font-semibold text-zinc-100">{t('projects.createTitle')}</h2>
           <button
             onClick={onClose}
             className="text-zinc-400 hover:text-zinc-200 transition-colors p-1"
@@ -84,7 +86,7 @@ export function NewProjectDialog({ isOpen, onClose, onCreated }: NewProjectDialo
         <form onSubmit={handleSubmit} className="p-5">
           <div className="mb-4">
             <label htmlFor="project-name" className="block text-sm font-medium text-zinc-300 mb-2">
-              Project Name <span className="text-red-400">*</span>
+              {t('projects.name')} <span className="text-red-400">{t('projects.required')}</span>
             </label>
             <input
               ref={nameInputRef}
@@ -92,7 +94,7 @@ export function NewProjectDialog({ isOpen, onClose, onCreated }: NewProjectDialo
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="My Awesome Project"
+              placeholder={t('projects.namePlaceholder')}
               className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
               disabled={isSubmitting}
             />
@@ -100,13 +102,13 @@ export function NewProjectDialog({ isOpen, onClose, onCreated }: NewProjectDialo
 
           <div className="mb-5">
             <label htmlFor="project-description" className="block text-sm font-medium text-zinc-300 mb-2">
-              Description <span className="text-zinc-500">(optional)</span>
+              {t('projects.description')} <span className="text-zinc-500">{t('projects.optional')}</span>
             </label>
             <textarea
               id="project-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="A brief description of your project..."
+              placeholder={t('projects.descriptionPlaceholder')}
               rows={3}
               className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow resize-none"
               disabled={isSubmitting}
@@ -126,7 +128,7 @@ export function NewProjectDialog({ isOpen, onClose, onCreated }: NewProjectDialo
               className="px-4 py-2 text-zinc-300 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition-colors"
               disabled={isSubmitting}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -139,7 +141,7 @@ export function NewProjectDialog({ isOpen, onClose, onCreated }: NewProjectDialo
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               )}
-              Create Project
+              {t('common.create')}
             </button>
           </div>
         </form>

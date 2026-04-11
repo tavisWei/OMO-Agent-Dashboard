@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Agent, CreateTaskInput } from '../types';
 
 interface NewTaskDialogProps {
@@ -9,6 +10,7 @@ interface NewTaskDialogProps {
 }
 
 export function NewTaskDialog({ isOpen, onClose, onCreate, agents }: NewTaskDialogProps) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [agentId, setAgentId] = useState<number | null>(null);
@@ -57,7 +59,7 @@ export function NewTaskDialog({ isOpen, onClose, onCreate, agents }: NewTaskDial
       />
       <div className="relative bg-slate-900 border border-slate-700/50 rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-          <h2 className="text-lg font-semibold text-slate-100">New Task</h2>
+          <h2 className="text-lg font-semibold text-slate-100">{t('tasks.new')}</h2>
           <button
             onClick={onClose}
             className="p-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors"
@@ -71,7 +73,7 @@ export function NewTaskDialog({ isOpen, onClose, onCreate, agents }: NewTaskDial
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div>
             <label htmlFor="task-title" className="block text-sm font-medium text-slate-400 mb-1.5">
-              Title <span className="text-red-400">*</span>
+              {t('tasks.taskTitle')} <span className="text-red-400">*</span>
             </label>
             <input
               ref={titleInputRef}
@@ -79,7 +81,7 @@ export function NewTaskDialog({ isOpen, onClose, onCreate, agents }: NewTaskDial
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter task title..."
+              placeholder={t('tasks.taskTitlePlaceholder')}
               className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors"
               required
             />
@@ -87,13 +89,13 @@ export function NewTaskDialog({ isOpen, onClose, onCreate, agents }: NewTaskDial
 
           <div>
             <label htmlFor="task-description" className="block text-sm font-medium text-slate-400 mb-1.5">
-              Description
+              {t('tasks.description')}
             </label>
             <textarea
               id="task-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional description..."
+              placeholder={t('tasks.descriptionPlaceholder')}
               rows={3}
               className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors resize-none"
             />
@@ -101,7 +103,7 @@ export function NewTaskDialog({ isOpen, onClose, onCreate, agents }: NewTaskDial
 
           <div>
             <label htmlFor="task-agent" className="block text-sm font-medium text-slate-400 mb-1.5">
-              Assign Agent
+              {t('tasks.assignAgent')}
             </label>
             <select
               id="task-agent"
@@ -109,7 +111,7 @@ export function NewTaskDialog({ isOpen, onClose, onCreate, agents }: NewTaskDial
               onChange={(e) => setAgentId(e.target.value ? Number(e.target.value) : null)}
               className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-200 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors"
             >
-              <option value="">Unassigned</option>
+              <option value="">{t('tasks.unassigned')}</option>
               {agents.map((agent) => (
                 <option key={agent.id} value={agent.id}>
                   {agent.name} ({agent.model})
@@ -124,14 +126,14 @@ export function NewTaskDialog({ isOpen, onClose, onCreate, agents }: NewTaskDial
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
             >
-              Cancel
+              {t('tasks.cancel')}
             </button>
             <button
               type="submit"
               disabled={!title.trim()}
               className="px-4 py-2 text-sm font-medium bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition-colors"
             >
-              Create Task
+              {t('tasks.create')}
             </button>
           </div>
         </form>

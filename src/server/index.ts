@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { getDatabase } from '../db/index.js';
+import { getDatabase, createAgent, clearAgents } from '../db/index.js';
+import { getAgents, getConfigPath } from '../config/omo-reader.js';
 import projectsRouter from './routes/projects.js';
 import agentsRouter from './routes/agents.js';
 import tasksRouter from './routes/tasks.js';
@@ -40,10 +41,40 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+async function syncOMOConfig() {
+  const configPath = getConfigPath();
+  const omoAgents = getAgents(configPath);
+  
+  if (omoAgents.length === 0) {
+    console.log('No agents found in OMO config or config file not found:', configPath);
+    return;
+  }
+  
+  console.log(`Found ${omoAgents.length} agents in OMO config`);
+  
+  // Clear existing agents and sync from OMO config
+  clearAgents();
+  
+  for (const agent of omoAgents) {
+    createAgent(agent.name, null, agent.model || 'gpt-4', {
+      temperature: agent.temperature,
+      top_p: agent.top_p,
+      max_tokens: agent.max_tokens,
+      status: 'idle'
+    });
+    console.log(`  - Synced agent: ${agent.name} (${agent.model || 'gpt-4'})`);
+  }
+  
+  console.log('OMO config sync completed');
+}
+
 async function start() {
   try {
     await getDatabase();
     console.log('Database initialized');
+    
+    // Sync agents from OMO config
+    await syncOMOConfig();
     
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);

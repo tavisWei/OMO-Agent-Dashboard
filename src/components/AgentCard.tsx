@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { StatusBadge } from './StatusBadge';
 import type { AgentWithUsage } from '../types';
 
@@ -33,6 +34,7 @@ function formatTokens(tokens: number): string {
 }
 
 export function AgentCard({ agent, onEdit }: AgentCardProps) {
+  const { t } = useTranslation();
   const icon = getAgentIcon(agent.model);
 
   return (
@@ -48,7 +50,7 @@ export function AgentCard({ agent, onEdit }: AgentCardProps) {
         <button
           onClick={() => onEdit(agent)}
           className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-400 hover:text-slate-200 transition-all duration-200"
-          aria-label="Edit agent"
+          aria-label={t('agents.edit')}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -58,21 +60,21 @@ export function AgentCard({ agent, onEdit }: AgentCardProps) {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-slate-500">Model</span>
+          <span className="text-slate-500">{t('agents.model')}</span>
           <span className="text-slate-300 font-mono text-xs bg-slate-900/50 px-2 py-0.5 rounded">
             {agent.model}
           </span>
         </div>
 
         <div className="flex items-center justify-between text-sm">
-          <span className="text-slate-500">Tokens</span>
+          <span className="text-slate-500">{t('agents.tokens')}</span>
           <span className="text-slate-300 font-medium">
             {formatTokens(agent.totalTokens)}
           </span>
         </div>
 
         <div className="flex items-center justify-between text-sm">
-          <span className="text-slate-500">Cost</span>
+          <span className="text-slate-500">{t('agents.cost')}</span>
           <span className="text-emerald-400 font-medium">
             ${agent.totalCost.toFixed(4)}
           </span>
@@ -82,7 +84,7 @@ export function AgentCard({ agent, onEdit }: AgentCardProps) {
       {agent.last_heartbeat && (
         <div className="mt-3 pt-3 border-t border-slate-700/30">
           <span className="text-xs text-slate-500">
-            Last active: {new Date(agent.last_heartbeat).toLocaleTimeString()}
+            {t('agents.lastActive')}: {new Date(agent.last_heartbeat).toLocaleTimeString()}
           </span>
         </div>
       )}
