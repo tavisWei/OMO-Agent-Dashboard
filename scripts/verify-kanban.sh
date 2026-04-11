@@ -4,8 +4,6 @@
 # OMO Agent Dashboard - Kanban Board 验证
 # ===========================================
 
-set -e
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
@@ -21,12 +19,12 @@ FAIL_COUNT=0
 
 pass() {
     echo -e "${GREEN}✓${NC} $1"
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "${RED}✗${NC} $1"
-    ((FAIL_COUNT++))
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 info() {
@@ -55,11 +53,11 @@ fi
 
 # 2. Check frontend route (Kanban is now at /)
 info "2. Checking Kanban page..."
-KANBAN_RESPONSE=$(curl -s -w "%{http_code}" http://localhost:3002/ 2>/dev/null || echo "000")
-if [[ "$KANBAN_RESPONSE" == "200" ]]; then
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3002/ 2>/dev/null || echo "000")
+if [[ "$HTTP_CODE" == "200" ]]; then
     pass "Kanban page loads (HTTP 200)"
 else
-    fail "Kanban page not found (HTTP $KANBAN_RESPONSE)"
+    fail "Kanban page not found (HTTP $HTTP_CODE)"
 fi
 
 # 3. Check navigation elements
