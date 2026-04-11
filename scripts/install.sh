@@ -8,7 +8,9 @@ set -e
 
 echo "🚀 开始安装 OMO Agent Dashboard..."
 
-# 检测操作系统
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
 detect_os() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         if command -v apt-get &> /dev/null; then
@@ -32,7 +34,6 @@ detect_os() {
 OS=$(detect_os)
 echo "📋 检测到操作系统: $OS"
 
-# 检查 Node.js
 check_node() {
     if ! command -v node &> /dev/null; then
         echo "❌ Node.js 未安装，请先安装 Node.js 18+"
@@ -48,7 +49,6 @@ check_node() {
     echo "✅ Node.js 版本: $(node -v)"
 }
 
-# 检查 npm
 check_npm() {
     if ! command -v npm &> /dev/null; then
         echo "❌ npm 未安装"
@@ -57,7 +57,6 @@ check_npm() {
     echo "✅ npm 版本: $(npm -v)"
 }
 
-# 安装系统依赖 (Linux)
 install_linux_deps() {
     echo "📦 安装系统依赖..."
     
@@ -70,7 +69,10 @@ install_linux_deps() {
             libsecret-1-dev \
             libwebkit2gtk-4.1-dev \
             libnotify-dev \
-            libayatana-appindicator3-dev
+            libayatana-appindicator3-dev \
+            libglib2.0-dev \
+            libnss3 \
+            libnspr4
     elif [[ "$OS" == "rhel" ]]; then
         sudo yum install -y \
             gcc \
@@ -78,25 +80,127 @@ install_linux_deps() {
             make \
             python3 \
             sqlite-devel \
-            libsecret-devel
+            libsecret-devel \
+            glib2 \
+            nss \
+            nspr
     elif [[ "$OS" == "arch" ]]; then
         sudo pacman -S --noconfirm \
             base-devel \
             python \
             sqlite \
             libsecret \
-            webkit2gtk
+            webkit2gtk \
+            glib2 \
+            nss \
+            nspr
     fi
     
     echo "✅ 系统依赖安装完成"
 }
 
-# 主安装流程
+init_directories() {
+    echo "📁 初始化目录结构..."
+    
+    mkdir -p "$PROJECT_DIR/data"
+    mkdir -p "$PROJECT_DIR/data/logs"
+    mkdir -p "$PROJECT_DIR/data/backups"
+    
+    echo "   ✅ data/"
+    echo "   ✅ data/logs/"
+    echo "   ✅ data/backups/"
+}
+
+init_database() {
+    echo "💾 初始化数据库..."
+    
+    DB_FILE="$PROJECT_DIR/data/dashboard.db"
+    
+    if [[ -f "$DB_FILE" ]]; then
+        echo "   ℹ️  数据库已存在: $DB_FILE"
+    else
+        echo "   ✅ 数据库将在首次启动时自动创建"
+    fi
+}
+
+check_omo_config() {
+    echo "🔧 检查 OMO 配置文件..."
+    
+    OMO_CONFIG_PATH="${OMO_CONFIG_PATH:-$HOME/.config/opencode/oh-my-opencode.jsonc}"
+    
+    if [[ -f "$OMO_CONFIG_PATH" ]]; then
+        echo "   ✅ OMO 配置已存在: $OMO_CONFIG_PATH"
+        
+        if command -v node &> /dev/null; then
+            echo "   🔍 验证配置文件格式..."
+            if node -e "JSON.parse(require('fs').readFileSync('$OMO_CONFIG_PATH', 'utf8').replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''))" 2>/dev/null; then
+                echo "   ✅ 配置文件格式正确"
+            else
+                echo "   ⚠️  配置文件格式可能有误，请手动检查"
+            fi
+        fi
+    else
+        echo "   ⚠️  OMO 配置文件不存在: $OMO_CONFIG_PATH"
+        echo "   📝 创建一个示例配置..."
+        
+        mkdir -p "$(dirname "$OMO_CONFIG_PATH")"
+        
+        cat > "$OMO_CONFIG_PATH" << 'EOF'
+{
+  // OMO 配置文件
+  // 文档: https://github.com/code-yeongyu/oh-my-opencode
+  "version": "3.0",
+  "agents": [
+    {
+      "name": "sisyphus",
+      "model": "anthropic/claude-opus-4-5",
+      "temperature": 0.7,
+      "description": "主任务编排器"
+    },
+    {
+      "name": "oracle",
+      "model": "anthropic/claude-sonnet-4-6",
+      "temperature": 0.5,
+      "description": "调试专家"
+    },
+    {
+      "name": "explore",
+      "model": "openai/gpt-4o",
+      "temperature": 0.8,
+      "description": "代码搜索"
+    }
+  ]
+}
+EOF
+        echo "   ✅ 示例配置已创建: $OMO_CONFIG_PATH"
+        echo "   💡 请根据需要修改配置"
+    fi
+}
+
+install_playwright() {
+    echo "🎭 安装 Playwright 浏览器..."
+    
+    if command -v npx &> /dev/null; then
+        cd "$PROJECT_DIR"
+        
+        if [[ "$OS" == "debian" ]] || [[ "$OS" == "rhel" ]] || [[ "$OS" == "arch" ]]; then
+            npx playwright install chromium 2>/dev/null || {
+                echo "   ⚠️  Playwright 浏览器安装失败，请手动运行: npx playwright install chromium"
+            }
+        else
+            npx playwright install 2>/dev/null || {
+                echo "   ℹ️  可选: 运行 'npx playwright install' 安装浏览器"
+            }
+        fi
+        
+        echo "   ✅ Playwright 安装完成"
+    fi
+}
+
 main() {
     check_node
     check_npm
     
-    # Linux 系统额外依赖
     if [[ "$OS" == "linux" ]]; then
         read -p "是否安装系统依赖? (需要 sudo 权限) [Y/n]: " -n 1 -r
         echo
@@ -105,16 +209,18 @@ main() {
         fi
     fi
     
-    # 安装 npm 依赖
-    echo "📦 安装 npm 依赖..."
-    npm install
+    init_directories
     
-    # 配置国内镜像源（可选）
-    read -p "是否配置国内 npm 镜像源? [y/N]: " -n 1 -r
+    echo "📦 安装 npm 依赖..."
+    npm install --prefer-offline 2>/dev/null || npm install
+    
+    init_database
+    check_omo_config
+    
+    read -p "是否安装 Playwright 浏览器 (用于 E2E 测试)? [y/N]: " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        npm config set registry https://registry.npmmirror.com
-        echo "✅ 已配置 npm 镜像源"
+        install_playwright
     fi
     
     echo ""
@@ -122,18 +228,13 @@ main() {
     echo "✅ 安装完成！"
     echo "=========================================="
     echo ""
-    echo "下一步操作:"
-    echo "  启动开发服务器: npm run dev"
-    echo "  生产构建:       npm run build"
-    echo "  运行测试:       npm run test:run"
+    echo "🚀 快速启动:"
+    echo "   ./scripts/start.sh"
     echo ""
-    echo "详细运维脚本:"
-    echo "  ./scripts/install.sh    # 重新安装依赖"
-    echo "  ./scripts/start.sh      # 启动服务"
-    echo "  ./scripts/stop.sh       # 停止服务"
-    echo "  ./scripts/restart.sh    # 重启服务"
-    echo "  ./scripts/status.sh     # 查看状态"
-    echo "  ./scripts/logs.sh       # 查看日志"
+    echo "📝 查看状态:"
+    echo "   ./scripts/status.sh"
+    echo ""
+    echo "🌐 访问: http://localhost:3001"
     echo ""
 }
 
