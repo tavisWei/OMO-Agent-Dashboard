@@ -4,7 +4,8 @@
     "subtitle": "智能体管理面板"
   },
   "nav": {
-    "dashboard": "仪表盘",
+    "workboard": "工作台",
+    "agents": "智能体",
     "tasks": "任务",
     "chat": "对话",
     "activity": "活动",

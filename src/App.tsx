@@ -15,7 +15,7 @@ import { useAgentRuntime } from './hooks/useAgentRuntime';
 import { AgentRuntimePanel } from './components/AgentRuntimeCard';
 import type { AgentWithUsage } from './types';
 
-function Dashboard() {
+function Agents() {
   useAgentRuntime();
   const { agents, isLoading, error, fetchAgents } = useAgentStore();
   const { projects, fetchProjects } = useProjectStore();
@@ -50,7 +50,7 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[var(--color-text)]">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-[var(--color-text)]">Agents</h1>
       <div className="grid grid-cols-3 gap-4">
         <div className="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
           <p className="text-sm text-[var(--color-text-secondary)]">Total Projects</p>
@@ -128,14 +128,6 @@ function Chat() {
   );
 }
 
-function Tasks() {
-  return (
-    <div className="h-full">
-      <KanbanBoard />
-    </div>
-  );
-}
-
 function App() {
   const { theme } = useThemeStore();
 
@@ -156,10 +148,10 @@ function App() {
       >
         <Routes>
           <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<KanbanBoard />} />
+            <Route path="/agents" element={<Agents />} />
             <Route path="/project/:id" element={<ProjectDetail />} />
             <Route path="/agent/:id" element={<AgentDetail />} />
-            <Route path="/tasks" element={<Tasks />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/activity" element={<Activity />} />

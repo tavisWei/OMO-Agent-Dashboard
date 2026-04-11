@@ -4,7 +4,8 @@
     "subtitle": "Agent Dashboard"
   },
   "nav": {
-    "dashboard": "Dashboard",
+    "workboard": "Work",
+    "agents": "Agents",
     "tasks": "Tasks",
     "chat": "Chat",
     "activity": "Activity",
