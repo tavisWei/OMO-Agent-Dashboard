@@ -1,212 +1,114 @@
 # OMO Agent Dashboard
 
-A local-first web application for managing Oh My OpenCode (OMO) multi-agent systems. Visualize agent status, manage configurations, track costs, and coordinate tasks all from a single dashboard.
-
-**Version**: 0.1.0
+可视化智能体管理看板 | 零配置 | 本地优先
 
 ---
 
-## Features
+## 🎯 一句话介绍
 
-- **Agent Status Dashboard** — Real-time grid view of all OMO agents with live status updates via WebSocket
-- **Project Organization** — Group agents by project for clear separation of concerns
-- **Visual Agent Configuration** — Edit model, temperature, top_p, and maxTokens without touching JSON files
-- **Task Kanban Board** — Drag-and-drop task management with Backlog / In Progress / Done / Failed columns
-- **Cost Tracking** — Token usage and estimated cost per agent and project with charts
-- **Activity Logs** — History of agent actions (started, stopped, errors, config changes)
-- **Dark/Light Theme** — Theme toggle with persistence, no flash on load
-- **Local SQLite Storage** — All data stays on your machine, no cloud dependency
+OMO Agent Dashboard 是一款**本地优先**的 Web 可视化工具，用于管理和监控 Oh My OpenCode (OMO) 多智能体系统的工作状态，让开发者能够像管理团队一样管理 AI 智能体。
 
 ---
 
-## Prerequisites
+## 💡 解决什么问题？
 
-- [Oh My OpenCode (OMO)](https://github.com/code-yeongyu/oh-my-opencode) installed and configured
-- Node.js 18+ (tested with Node 22)
+- ❌ **配置繁琐** - 手动编辑 JSON 配置文件，容易出错
+- ❌ **状态黑盒** - 不知道智能体在做什么、消耗多少 Token
+- ❌ **管理分散** - 项目多了难以追踪
+- ❌ **缺少可视化** - 需要在终端里猜状态
 
 ---
 
-## Installation
+## ✨ 核心特性
+
+| 特性 | 说明 |
+|------|------|
+| 📊 **智能体看板** | 网格视图实时显示所有智能体状态 |
+| ⚙️ **可视化配置** | 拖拽滑块设置 model/temperature/top_p |
+| 📁 **项目分组** | 按项目组织智能体，互不干扰 |
+| 📋 **任务看板** | Kanban 拖拽管理智能体任务 |
+| 💰 **成本追踪** | Token 使用量 + 预估成本图表 |
+| 💬 **智能体对话** | 直接和智能体聊天 (SSE 流式响应) |
+| 📝 **活动日志** | 记录所有操作历史 |
+| 🌙 **暗色主题** | 保护眼睛的主题切换 |
+| 🔄 **配置监听** | 自动同步 OMO 配置文件变化 |
+| 📦 **本地存储** | SQLite 数据库，数据不出本地 |
+
+---
+
+## ⚡ 快速开始
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/OMO-Agent-Dashboard.git
-cd OMO-Agent-Dashboard
+# 一键安装
+./scripts/install.sh
 
-# Install dependencies
-npm install
+# 启动服务
+./scripts/start.sh
 
-# Start the development server
-npm run dev
-```
-
-Open [http://localhost:3001](http://localhost:3001) in your browser.
-
-For production:
-
-```bash
-npm run build
-npm start
+# 打开浏览器
+# 访问 http://localhost:3001
 ```
 
 ---
 
-## Pages & Routes
+## 🏆 核心优势
 
-| Route | Description |
-|---|---|
-| `/` | Main dashboard — agent grid with project sidebar |
-| `/project/:id` | Project detail — agent list + Kanban task board |
-| `/agent/:id` | Agent detail — config panel + activity log |
-| `/analytics` | Cost overview — token usage and cost charts |
-| `/settings` | Theme, API key, OMO config path |
-
----
-
-## API Reference
-
-### Agents
-
-```
-GET    /api/agents           — List all agents
-GET    /api/agents/:id        — Get single agent
-PUT    /api/agents/:id        — Update agent config
-DELETE /api/agents/:id        — Delete agent
-```
-
-**Update body example:**
-```json
-{
-  "model": "gpt-4o",
-  "temperature": 0.8,
-  "top_p": 0.95,
-  "max_tokens": 4096
-}
-```
-
-### Projects
-
-```
-GET    /api/projects          — List all projects
-POST   /api/projects          — Create project
-GET    /api/projects/:id      — Get project with agents
-PUT    /api/projects/:id       — Update project
-DELETE /api/projects/:id       — Delete project
-```
-
-### Tasks
-
-```
-GET    /api/tasks              — List tasks (filter by project_id / agent_id / status)
-POST   /api/tasks              — Create task
-PUT    /api/tasks/:id          — Update task (status, position, title)
-DELETE /api/tasks/:id           — Delete task
-```
-
-**Task statuses**: `backlog` | `in_progress` | `done` | `failed`
-
-### Cost
-
-```
-GET    /api/cost              — Get cost summary
-                                ?range=today|week|month|custom
-                                &startDate=ISO8601
-                                &endDate=ISO8601
-```
-
-**Response:**
-```json
-{
-  "summary": {
-    "total_input_tokens": 123456,
-    "total_output_tokens": 78901,
-    "total_tokens": 202357,
-    "total_cost": 4.23,
-    "total_api_calls": 50
-  },
-  "by_agent": [
-    {
-      "agent_id": 1,
-      "agent_name": "Sisyphus",
-      "model": "gpt-4o",
-      "total_tokens": 100000,
-      "total_cost": 2.00
-    }
-  ],
-  "date_range": { "startDate": "...", "endDate": "..." }
-}
-```
-
-### Activity Logs
-
-```
-GET    /api/activity-logs     — List activity logs
-                                ?agent_id=1
-                                &limit=20
-                                &offset=0
-```
+| 对比项 | OMO Dashboard | Mission Control | OmO Agent Config |
+|--------|:-------------:|:--------------:|:----------------:|
+| **安装复杂度** | ⭐ 一条命令 | ⭐⭐⭐ Docker | ⭐ npm |
+| **数据库** | SQLite ✅ | PostgreSQL ❌ | JSON ❌ |
+| **成本追踪** | ✅ | ❌ | ❌ |
+| **任务看板** | ✅ | ✅ | ❌ |
+| **智能体对话** | ✅ | ❌ | ❌ |
+| **本地优先** | ✅ | ❌ | ✅ |
+| **实时更新** | WebSocket ✅ | WebSocket ✅ | ❌ |
 
 ---
 
-## Architecture
+## 👥 目标用户
 
-```
-Browser (React + Vite)
-       │ WebSocket / REST
-       ▼
-Backend (Node.js + Express)
-       │
-       ├── SQLite Database (sql.js)
-       ├── OMO Config Reader/Watcher (chokidar)
-       └── WebSocket Server (ws)
-```
-
-### Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, Vite 7, Tailwind CSS 4 |
-| State | Zustand 5 |
-| Backend | Express 5, ws, chokidar |
-| Database | sql.js (SQLite in-browser/WASM) |
-| Charts | Recharts |
-| DnD | @dnd-kit |
+- 🔧 **OpenCode/OMO 用户** - 需要管理多个智能体
+- 📊 **AI 开发者** - 关注 Token 成本和效率
+- 🚀 **效率追求者** - 想要可视化替代命令行
 
 ---
 
-## Configuration
+## 🛠️ 技术栈
 
-By default, the dashboard reads your OMO config from:
-
-```
-~/.config/opencode/oh-my-opencode.jsonc
-```
-
-You can change this path in **Settings** (UI) or via the `OMO_CONFIG_PATH` environment variable:
-
-```bash
-OMO_CONFIG_PATH=/custom/path/config.jsonc npm run dev
-```
+| 层级 | 技术 |
+|------|------|
+| 前端 | React 19 + Vite 7 + Tailwind CSS 4 |
+| 状态 | Zustand 5 |
+| 后端 | Express 5 + WebSocket |
+| 数据库 | sql.js (SQLite WASM) |
+| 拖拽 | @dnd-kit |
+| 图表 | Recharts |
 
 ---
 
-## Scripts
+## 📦 安装要求
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start dev server on port 3001 |
-| `npm run build` | Type-check and build for production |
-| `npm start` | Run production server |
-| `npm run preview` | Preview production build locally |
+- Node.js 18+
+- npm 9+
+- (可选) OMO 已配置
 
 ---
 
-## Contributing
+## 🚀 运维脚本
 
-Contributions are welcome. Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+| 脚本 | 说明 |
+|------|------|
+| `./scripts/install.sh` | 一键安装 (依赖 + 目录 + 配置) |
+| `./scripts/start.sh` | 启动服务 |
+| `./scripts/stop.sh` | 停止服务 |
+| `./scripts/restart.sh` | 重启服务 |
+| `./scripts/status.sh` | 查看状态 |
+| `./scripts/logs.sh` | 查看日志 |
+| `./scripts/manage.sh` | 交互式菜单 |
+| `./scripts/health.sh` | 健康检查 (Docker/K8s) |
 
 ---
 
-## License
+## 📄 许可证
 
 MIT
