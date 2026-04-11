@@ -5,6 +5,7 @@ import {
   updateAgent,
   deleteAgent
 } from '../../db/index.js';
+import { saveAgentConfig } from '../../config/omo-writer.js';
 
 const router = Router();
 
@@ -45,10 +46,31 @@ router.put('/:id', (req, res) => {
     if (!updates || Object.keys(updates).length === 0) {
       return res.status(400).json({ error: 'No updates provided' });
     }
+    
+    // First update SQLite
     const success = updateAgent(id, updates);
     if (!success) {
       return res.status(404).json({ error: 'Agent not found' });
     }
+    
+    // Then sync back to OMO config file
+    const agent = getAgent(id);
+    if (agent) {
+      const omoAgent = {
+        name: agent.name,
+        model: agent.model,
+        temperature: agent.temperature,
+        top_p: agent.top_p,
+        max_tokens: agent.max_tokens,
+      };
+      const saveResult = saveAgentConfig(omoAgent);
+      if (!saveResult.success) {
+        console.error('Failed to sync to OMO config:', saveResult.error);
+      } else {
+        console.log('Synced agent config to OMO:', saveResult.path);
+      }
+    }
+    
     const updated = getAgent(id);
     res.json(updated);
   } catch (error) {
