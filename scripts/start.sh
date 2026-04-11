@@ -76,7 +76,7 @@ start() {
         log "✅ 服务启动成功!"
         log "   PID: $PID"
         log "   日志: $LOG_FILE"
-        log "   访问: http://localhost:3001"
+        log "   访问: http://localhost:3002"
     else
         error "服务启动失败，请查看日志: $LOG_FILE"
         exit 1
