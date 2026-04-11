@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   BarChart,
@@ -13,15 +13,10 @@ import {
   Cell
 } from 'recharts';
 import type {
-  DateRange,
-  CostSummaryResponse,
-  AgentCostSummary,
   DailyCostData,
-  AgentDistributionData,
-  CostRecord
+  AgentDistributionData
 } from '../types';
-
-const API_BASE = 'http://localhost:3001/api';
+import { useCostStore, selectTotalCost, selectTotalTokens, selectByAgent } from '../stores/costStore';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#ef4444', '#f97316'];
 
@@ -38,38 +33,14 @@ function formatCost(cost: number): string {
 
 export function CostOverview() {
   const { t } = useTranslation();
-  const [dateRange, setDateRange] = useState<DateRange>('week');
-  const [customStart, setCustomStart] = useState('');
-  const [customEnd, setCustomEnd] = useState('');
-  const [data, setData] = useState<CostSummaryResponse | null>(null);
-  const [records, setRecords] = useState<CostRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { records, isLoading, timeRange, setTimeRange, fetchCosts } = useCostStore();
+  const totalCost = useCostStore(selectTotalCost);
+  const totalTokens = useCostStore(selectTotalTokens);
+  const byAgent = useCostStore(selectByAgent);
 
   useEffect(() => {
-    fetchCostData();
-  }, [dateRange, customStart, customEnd]);
-
-  async function fetchCostData() {
-    setLoading(true);
-    try {
-      const rangeParam = dateRange === 'custom' ? 'month' : dateRange;
-      const [summaryRes, recordsRes] = await Promise.all([
-        fetch(`${API_BASE}/cost-records/summary?dateRange=${rangeParam}`),
-        fetch(`${API_BASE}/cost-records?dateRange=${rangeParam}`)
-      ]);
-
-      if (summaryRes.ok && recordsRes.ok) {
-        const summaryData = await summaryRes.json();
-        const recordsData = await recordsRes.json();
-        setData(summaryData);
-        setRecords(recordsData);
-      }
-    } catch (error) {
-      console.error('Failed to fetch cost data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
+    fetchCosts();
+  }, [fetchCosts]);
 
   const dailyData = useMemo((): DailyCostData[] => {
     if (!records.length) return [];
@@ -106,20 +77,59 @@ export function CostOverview() {
   }, [records]);
 
   const agentDistribution = useMemo((): AgentDistributionData[] => {
-    if (!data?.by_agent.length) return [];
+    if (Object.keys(byAgent).length === 0) return [];
 
-    const totalTokens = data.summary.total_tokens;
-
-    return data.by_agent
-      .filter(agent => agent.total_tokens > 0)
-      .map(agent => ({
-        name: agent.agent_name,
-        value: agent.total_tokens,
-        cost: agent.total_cost,
-        percentage: totalTokens > 0 ? ((agent.total_tokens / totalTokens) * 100).toFixed(1) : '0'
+    return Object.entries(byAgent)
+      .filter(([, data]) => data.tokens > 0)
+      .map(([agentId, data]) => ({
+        name: agentId === 'unknown' ? 'Unknown Agent' : `Agent ${agentId}`,
+        value: data.tokens,
+        cost: data.cost,
+        percentage: totalTokens > 0 ? ((data.tokens / totalTokens) * 100).toFixed(1) : '0'
       }))
       .sort((a, b) => b.value - a.value);
-  }, [data]);
+  }, [byAgent, totalTokens]);
+
+  const agentBreakdown = useMemo(() => {
+    if (records.length === 0) return [];
+
+    const grouped: Record<string, {
+      agentId: number | null;
+      agentName: string;
+      model: string;
+      totalInputTokens: number;
+      totalOutputTokens: number;
+      totalTokens: number;
+      totalCost: number;
+      apiCalls: number;
+    }> = {};
+
+    records.forEach(record => {
+      const key = record.agent_id?.toString() ?? 'unknown';
+      if (!grouped[key]) {
+        grouped[key] = {
+          agentId: record.agent_id,
+          agentName: record.agent_id ? `Agent ${record.agent_id}` : 'Unknown Agent',
+          model: record.model,
+          totalInputTokens: 0,
+          totalOutputTokens: 0,
+          totalTokens: 0,
+          totalCost: 0,
+          apiCalls: 0
+        };
+      }
+      grouped[key].totalInputTokens += record.input_tokens;
+      grouped[key].totalOutputTokens += record.output_tokens;
+      grouped[key].totalTokens += record.input_tokens + record.output_tokens;
+      grouped[key].totalCost += record.cost;
+      grouped[key].apiCalls += 1;
+      if (grouped[key].model !== record.model) {
+        grouped[key].model = 'Mixed';
+      }
+    });
+
+    return Object.values(grouped).sort((a, b) => b.totalTokens - a.totalTokens);
+  }, [records]);
 
   function exportToCSV() {
     if (!records.length) return;
@@ -151,38 +161,20 @@ export function CostOverview() {
         <h1 className="text-2xl font-bold text-[var(--color-text)]">{t('cost.title')}</h1>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg p-1">
-            {(['today', 'week', 'month', 'custom'] as DateRange[]).map((range) => (
+            {(['today', 'week', 'month', 'all'] as const).map((range) => (
               <button
                 key={range}
-                onClick={() => setDateRange(range)}
+                onClick={() => setTimeRange(range)}
                 className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                  dateRange === range
+                  timeRange === range
                     ? 'bg-[var(--color-accent)] text-white'
                     : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
                 }`}
               >
-                {range === 'today' ? t('cost.today') : range === 'week' ? t('cost.thisWeek') : range === 'month' ? t('cost.thisMonth') : t('cost.custom')}
+                {range === 'today' ? t('cost.today') : range === 'week' ? t('cost.thisWeek') : range === 'month' ? t('cost.thisMonth') : t('cost.all')}
               </button>
             ))}
           </div>
-
-          {dateRange === 'custom' && (
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={customStart}
-                onChange={(e) => setCustomStart(e.target.value)}
-                className="px-3 py-1.5 text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-md text-[var(--color-text)]"
-              />
-              <span className="text-[var(--color-text-secondary)]">{t('cost.to')}</span>
-              <input
-                type="date"
-                value={customEnd}
-                onChange={(e) => setCustomEnd(e.target.value)}
-                className="px-3 py-1.5 text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-md text-[var(--color-text)]"
-              />
-            </div>
-          )}
 
           <button
             onClick={exportToCSV}
@@ -201,27 +193,27 @@ export function CostOverview() {
         <div className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
           <p className="text-sm text-[var(--color-text-secondary)] mb-1">{t('cost.totalTokens')}</p>
           <p className="text-2xl font-bold text-[var(--color-text)]">
-            {loading ? '—' : formatTokens(data?.summary.total_tokens ?? 0)}
+            {isLoading ? '—' : formatTokens(totalTokens)}
           </p>
           <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-            {t('cost.inOut', { input: formatTokens(data?.summary.total_input_tokens ?? 0), output: formatTokens(data?.summary.total_output_tokens ?? 0) })}
+            {t('cost.inOut', { input: formatTokens(records.reduce((sum, r) => sum + r.input_tokens, 0)), output: formatTokens(records.reduce((sum, r) => sum + r.output_tokens, 0)) })}
           </p>
         </div>
 
         <div className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
           <p className="text-sm text-[var(--color-text-secondary)] mb-1">{t('cost.totalCost')}</p>
           <p className="text-2xl font-bold text-emerald-400">
-            {loading ? '—' : formatCost(data?.summary.total_cost ?? 0)}
+            {isLoading ? '—' : formatCost(totalCost)}
           </p>
           <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-            {formatCost(data?.summary.total_cost ?? 0)} {t('cost.totalSpent')}
+            {formatCost(totalCost)} {t('cost.totalSpent')}
           </p>
         </div>
 
         <div className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
           <p className="text-sm text-[var(--color-text-secondary)] mb-1">{t('cost.apiCalls')}</p>
           <p className="text-2xl font-bold text-[var(--color-text)]">
-            {loading ? '—' : data?.summary.total_api_calls ?? 0}
+            {isLoading ? '—' : records.length}
           </p>
           <p className="text-xs text-[var(--color-text-secondary)] mt-1">
             {t('cost.requestsMade')}
@@ -233,7 +225,7 @@ export function CostOverview() {
         <div className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
           <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">{t('cost.dailyUsage')}</h3>
           <div className="h-64">
-            {loading ? (
+            {isLoading ? (
               <div className="flex items-center justify-center h-full text-[var(--color-text-secondary)]">
                 {t('cost.loading')}
               </div>
@@ -270,7 +262,7 @@ export function CostOverview() {
         <div className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
           <h3 className="text-lg font-semibold text-[var(--color-text)] mb-4">{t('cost.agentDistribution')}</h3>
           <div className="h-64">
-            {loading ? (
+            {isLoading ? (
               <div className="flex items-center justify-center h-full text-[var(--color-text-secondary)]">
                 {t('cost.loading')}
               </div>
@@ -334,32 +326,32 @@ export function CostOverview() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
-              {loading ? (
+              {isLoading ? (
                 <tr>
                   <td colSpan={8} className="px-5 py-8 text-center text-[var(--color-text-secondary)]">
                     {t('cost.loading')}
                   </td>
                 </tr>
-              ) : data?.by_agent.length === 0 ? (
+              ) : agentBreakdown.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-5 py-8 text-center text-[var(--color-text-secondary)]">
                     {t('cost.noData')}
                   </td>
                 </tr>
               ) : (
-                data?.by_agent.map((agent: AgentCostSummary, index: number) => {
-                  const percentage = data.summary.total_tokens > 0
-                    ? ((agent.total_tokens / data.summary.total_tokens) * 100).toFixed(1)
+                agentBreakdown.map((agent, index) => {
+                  const percentage = totalTokens > 0
+                    ? ((agent.totalTokens / totalTokens) * 100).toFixed(1)
                     : '0';
                   return (
-                    <tr key={agent.agent_id} className="hover:bg-[var(--color-bg-tertiary)] transition-colors">
+                    <tr key={agent.agentId ?? 'unknown'} className="hover:bg-[var(--color-bg-tertiary)] transition-colors">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <div
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: COLORS[index % COLORS.length] }}
                           />
-                          <span className="font-medium text-[var(--color-text)]">{agent.agent_name}</span>
+                          <span className="font-medium text-[var(--color-text)]">{agent.agentName}</span>
                         </div>
                       </td>
                       <td className="px-5 py-4">
@@ -368,19 +360,19 @@ export function CostOverview() {
                         </span>
                       </td>
                       <td className="px-5 py-4 text-right text-[var(--color-text)]">
-                        {formatTokens(agent.total_input_tokens)}
+                        {formatTokens(agent.totalInputTokens)}
                       </td>
                       <td className="px-5 py-4 text-right text-[var(--color-text)]">
-                        {formatTokens(agent.total_output_tokens)}
+                        {formatTokens(agent.totalOutputTokens)}
                       </td>
                       <td className="px-5 py-4 text-right text-[var(--color-text)] font-medium">
-                        {formatTokens(agent.total_tokens)}
+                        {formatTokens(agent.totalTokens)}
                       </td>
                       <td className="px-5 py-4 text-right text-emerald-400 font-medium">
-                        {formatCost(agent.total_cost)}
+                        {formatCost(agent.totalCost)}
                       </td>
                       <td className="px-5 py-4 text-right text-[var(--color-text)]">
-                        {agent.api_calls}
+                        {agent.apiCalls}
                       </td>
                       <td className="px-5 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">

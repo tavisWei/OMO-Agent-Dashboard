@@ -1,29 +1,81 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout';
 import { CostOverview } from './components/CostOverview';
 import { SettingsPage } from './components/SettingsPage';
 import { ActivityFeed } from './components/ActivityFeed';
 import { AgentChat } from './components/AgentChat';
+import { AgentGrid } from './components/AgentGrid';
+import AgentConfigPanel from './components/AgentConfigPanel';
 import { useThemeStore } from './stores/themeStore';
+import { useAgentStore } from './stores/agentStore';
+import { useProjectStore } from './stores/projectStore';
+import type { AgentWithUsage } from './types';
 
 function Dashboard() {
+  const { agents, isLoading, error, fetchAgents } = useAgentStore();
+  const { projects, fetchProjects } = useProjectStore();
+  const [configPanelOpen, setConfigPanelOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<AgentWithUsage | null>(null);
+
+  useEffect(() => {
+    fetchAgents();
+    fetchProjects();
+  }, [fetchAgents, fetchProjects]);
+
+  const handleEditAgent = (agent: AgentWithUsage) => {
+    setSelectedAgent(agent);
+    setConfigPanelOpen(true);
+  };
+
+  const handleCloseConfigPanel = () => {
+    setConfigPanelOpen(false);
+    setSelectedAgent(null);
+  };
+
+  const runningAgents = agents.filter((a) => a.status === 'running').length;
+
+  const filteredAgents: AgentWithUsage[] = agents.map((a) => ({
+    ...a,
+    config_path: null,
+    created_at: '',
+    updated_at: '',
+    totalTokens: 0,
+    totalCost: 0,
+  }));
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-[var(--color-text)]">Dashboard</h1>
       <div className="grid grid-cols-3 gap-4">
         <div className="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
           <p className="text-sm text-[var(--color-text-secondary)]">Total Projects</p>
-          <p className="text-2xl font-bold text-[var(--color-text)]">3</p>
+          <p className="text-2xl font-bold text-[var(--color-text)]">{projects.length}</p>
         </div>
         <div className="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
           <p className="text-sm text-[var(--color-text-secondary)]">Active Agents</p>
-          <p className="text-2xl font-bold text-[var(--color-text)]">12</p>
+          <p className="text-2xl font-bold text-[var(--color-text)]">{runningAgents}</p>
         </div>
         <div className="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-          <p className="text-sm text-[var(--color-text-secondary)]">Total Cost</p>
-          <p className="text-2xl font-bold text-[var(--color-accent)]">$474.55</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">Total Agents</p>
+          <p className="text-2xl font-bold text-[var(--color-text)]">{agents.length}</p>
         </div>
       </div>
+
+      {isLoading ? (
+        <p className="text-[var(--color-text-secondary)]">Loading...</p>
+      ) : error ? (
+        <p className="text-red-500">Error: {error}</p>
+      ) : (
+        <AgentGrid agents={filteredAgents} onEditAgent={handleEditAgent} />
+      )}
+
+      <AgentConfigPanel
+        agent={selectedAgent}
+        isOpen={configPanelOpen}
+        onClose={handleCloseConfigPanel}
+        onSave={fetchAgents}
+      />
     </div>
   );
 }

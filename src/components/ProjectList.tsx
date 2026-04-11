@@ -1,23 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-  agent_count?: number;
-}
-
-const API_BASE = 'http://localhost:3001/api';
+import { useProjectStore } from '../stores/projectStore';
 
 export function ProjectList() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { projects, isLoading, error, fetchProjects, deleteProject } = useProjectStore();
 
   const selectedId = location.pathname === '/'
     ? 'all'
@@ -27,31 +15,14 @@ export function ProjectList() {
 
   useEffect(() => {
     fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE}/projects`);
-      if (!res.ok) throw new Error('Failed to fetch projects');
-      const data = await res.json();
-      setProjects(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchProjects]);
 
   const handleDeleteProject = async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     if (!confirm('Are you sure you want to delete this project?')) return;
 
     try {
-      const res = await fetch(`${API_BASE}/projects/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete project');
-      setProjects(projects.filter(p => p.id !== id));
+      await deleteProject(id);
       if (selectedId === String(id)) {
         navigate('/');
       }
@@ -60,7 +31,7 @@ export function ProjectList() {
     }
   };
 
-  if (loading) {
+  if (isLoading && projects.length === 0) {
     return (
       <div className="w-60 bg-zinc-900 text-zinc-400 p-4 flex items-center justify-center">
         <span className="animate-pulse">Loading...</span>
@@ -112,9 +83,6 @@ export function ProjectList() {
               <span className="truncate">{project.name}</span>
             </span>
             <span className="flex items-center gap-1">
-              <span className="text-xs bg-zinc-700 px-2 py-0.5 rounded-full">
-                {project.agent_count ?? 0}
-              </span>
               <button
                 onClick={(e) => handleDeleteProject(e, project.id)}
                 className="opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-red-400 transition-opacity p-1"
@@ -128,7 +96,7 @@ export function ProjectList() {
           </button>
         ))}
 
-        {projects.length === 0 && (
+        {projects.length === 0 && !isLoading && (
           <p className="text-zinc-500 text-sm px-3 py-4 text-center">No projects yet</p>
         )}
       </nav>

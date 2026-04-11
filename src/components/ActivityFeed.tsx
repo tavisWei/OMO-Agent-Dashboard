@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ActivityLog, ActivityType, Agent } from '../types';
-
-const API_BASE = 'http://localhost:3001/api';
+import { useActivityStore } from '../stores/activityStore';
 
 const ACTIVITY_ICONS: Record<ActivityType, { icon: string; color: string; bg: string }> = {
   started: { icon: '▶', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
@@ -102,64 +101,26 @@ function ActivityItem({ log }: ActivityItemProps) {
 }
 
 interface ActivityFeedProps {
-  initialLogs?: ActivityLog[];
   refreshInterval?: number;
 }
 
-export function ActivityFeed({ initialLogs = [], refreshInterval = 30000 }: ActivityFeedProps) {
-  const [logs, setLogs] = useState<ActivityLog[]>(initialLogs);
+const API_BASE = '/api';
+
+export function ActivityFeed({ refreshInterval = 15000 }: ActivityFeedProps) {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<ActivityType[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState<number | null>(null);
   const [timeRange, setTimeRange] = useState<string>('all');
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const limit = 20;
 
-  const fetchLogs = useCallback(async (resetOffset = false) => {
-    if (loading) return;
-    const currentOffset = resetOffset ? 0 : offset;
-    
-    if (resetOffset) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-    }
-
-    try {
-      const params = new URLSearchParams();
-      params.set('limit', limit.toString());
-      params.set('offset', currentOffset.toString());
-      
-      if (selectedTypes.length > 0) {
-        params.set('type', selectedTypes.join(','));
-      }
-      if (selectedAgentId) {
-        params.set('agentId', selectedAgentId.toString());
-      }
-
-      const response = await fetch(`${API_BASE}/activity-logs?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch logs');
-      
-      const data = await response.json();
-      
-      if (resetOffset) {
-        setLogs(data.logs);
-        setOffset(limit);
-      } else {
-        setLogs(prev => [...prev, ...data.logs]);
-        setOffset(prev => prev + limit);
-      }
-      setHasMore(data.hasMore);
-    } catch (error) {
-      console.error('Error fetching activity logs:', error);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [offset, selectedTypes, selectedAgentId, loading]);
+  const { 
+    logs, 
+    isLoading, 
+    isLoadingMore, 
+    hasMore, 
+    error,
+    fetchLogs,
+    setFilters,
+  } = useActivityStore();
 
   const fetchAgents = useCallback(async () => {
     try {
@@ -167,8 +128,8 @@ export function ActivityFeed({ initialLogs = [], refreshInterval = 30000 }: Acti
       if (!response.ok) throw new Error('Failed to fetch agents');
       const data = await response.json();
       setAgents(data);
-    } catch (error) {
-      console.error('Error fetching agents:', error);
+    } catch (err) {
+      console.error('Error fetching agents:', err);
     }
   }, []);
 
@@ -176,11 +137,13 @@ export function ActivityFeed({ initialLogs = [], refreshInterval = 30000 }: Acti
     fetchAgents();
   }, [fetchAgents]);
 
+  // Sync filters to store and fetch
   useEffect(() => {
-    setOffset(0);
+    setFilters({ types: selectedTypes, agentId: selectedAgentId, timeRange });
     fetchLogs(true);
-  }, [selectedTypes, selectedAgentId, timeRange]);
+  }, [selectedTypes, selectedAgentId, timeRange, setFilters]);
 
+  // Auto-refresh
   useEffect(() => {
     if (refreshInterval <= 0) return;
 
@@ -259,7 +222,7 @@ export function ActivityFeed({ initialLogs = [], refreshInterval = 30000 }: Acti
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center h-32">
             <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
               <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -268,6 +231,11 @@ export function ActivityFeed({ initialLogs = [], refreshInterval = 30000 }: Acti
               </svg>
               <span className="text-sm">Loading activity...</span>
             </div>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-32 text-[var(--color-text-secondary)]">
+            <span className="text-2xl mb-2">⚠</span>
+            <span className="text-sm">{error}</span>
           </div>
         ) : logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-[var(--color-text-secondary)]">
@@ -283,10 +251,10 @@ export function ActivityFeed({ initialLogs = [], refreshInterval = 30000 }: Acti
         <div className="p-3 border-t border-[var(--color-border)]">
           <button
             onClick={handleLoadMore}
-            disabled={loadingMore}
+            disabled={isLoadingMore}
             className="w-full py-2 px-4 rounded-lg text-sm font-medium bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-primary)] hover:text-[var(--color-text)] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loadingMore ? (
+            {isLoadingMore ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

@@ -9,8 +9,7 @@ import {
   useSensor,
   useSensors,
   type DragStartEvent,
-  type DragEndEvent,
-  type DragOverEvent
+  type DragEndEvent
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -19,9 +18,8 @@ import {
 } from '@dnd-kit/sortable';
 import { TaskCard } from './TaskCard';
 import { NewTaskDialog } from './NewTaskDialog';
-import type { Task, Agent, TaskStatus, CreateTaskInput, KanbanColumn } from '../types';
-
-const API_BASE = 'http://localhost:3001/api';
+import { useTaskStore } from '../stores/taskStore';
+import type { Agent, TaskStatus, CreateTaskInput, KanbanColumn } from '../types';
 
 interface KanbanBoardProps {
   projectId?: number | null;
@@ -29,10 +27,9 @@ interface KanbanBoardProps {
 
 export function KanbanBoard({ projectId }: KanbanBoardProps) {
   const { t } = useTranslation();
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { tasks, isLoading, error, fetchTasks, createTask, updateTaskStatus, deleteTask } = useTaskStore();
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoadingAgents, setIsLoadingAgents] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<number | null>(null);
 
@@ -52,23 +49,9 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
     })
   );
 
-  const fetchTasks = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/tasks`);
-      if (!res.ok) throw new Error('Failed to fetch tasks');
-      const data = await res.json();
-      const filtered = projectId
-        ? data.filter((t: Task) => t.project_id === projectId)
-        : data;
-      setTasks(filtered);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load tasks');
-    }
-  }, [projectId]);
-
   const fetchAgents = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/agents`);
+      const res = await fetch('/api/agents');
       if (!res.ok) throw new Error('Failed to fetch agents');
       const data = await res.json();
       setAgents(data);
@@ -79,71 +62,23 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
 
   useEffect(() => {
     const load = async () => {
-      setIsLoading(true);
       await Promise.all([fetchTasks(), fetchAgents()]);
-      setIsLoading(false);
+      setIsLoadingAgents(false);
     };
     load();
   }, [fetchTasks, fetchAgents]);
 
-  const createTask = async (input: CreateTaskInput) => {
-    try {
-      const res = await fetch(`${API_BASE}/tasks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(input)
-      });
-      if (!res.ok) throw new Error('Failed to create task');
-      const newTask = await res.json();
-      setTasks((prev) => [...prev, newTask]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create task');
-    }
+  const handleCreateTask = async (input: CreateTaskInput) => {
+    await createTask(input.title, input.project_id ?? undefined, input.agent_id ?? undefined);
+    setIsDialogOpen(false);
   };
 
-  const updateTaskStatus = async (taskId: number, status: TaskStatus) => {
-    try {
-      const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      if (!res.ok) throw new Error('Failed to update task');
-      setTasks((prev) =>
-        prev.map((t) => (t.id === taskId ? { ...t, status } : t))
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update task');
-    }
-  };
-
-  const updateTaskPositions = async (taskId: number, newPosition: number) => {
-    try {
-      const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ position: newPosition })
-      });
-      if (!res.ok) throw new Error('Failed to update position');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update position');
-    }
-  };
-
-  const deleteTask = async (taskId: number) => {
-    try {
-      const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
-        method: 'DELETE'
-      });
-      if (!res.ok) throw new Error('Failed to delete task');
-      setTasks((prev) => prev.filter((t) => t.id !== taskId));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete task');
-    }
-  };
+  const filteredTasks = projectId
+    ? tasks.filter((t) => t.project_id === projectId)
+    : tasks;
 
   const getTasksByStatus = (status: TaskStatus) =>
-    tasks.filter((t) => t.status === status).sort((a, b) => a.position - b.position);
+    filteredTasks.filter((t) => t.status === status).sort((a, b) => a.position - b.position);
 
   const getAgentById = (agentId: number | null) =>
     agentId ? agents.find((a) => a.id === agentId) ?? null : null;
@@ -152,51 +87,12 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
     if (typeof id === 'string' && columns.some((c) => c.id === id)) {
       return id as TaskStatus;
     }
-    const task = tasks.find((t) => t.id === id);
+    const task = filteredTasks.find((t) => t.id === id);
     return task ? task.status : null;
   };
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as number);
-  };
-
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id as number;
-    const overId = over.id as number;
-
-    const activeContainer = findContainer(activeId);
-    const overContainer = findContainer(overId);
-
-    if (!activeContainer || !overContainer || activeContainer === overContainer) {
-      return;
-    }
-
-    setTasks((prev) => {
-      const overItems = prev.filter((t) => t.status === overContainer);
-      const activeTask = prev.find((t) => t.id === activeId);
-
-      if (!activeTask) return prev;
-
-      const overIndex = overItems.findIndex((t) => t.id === overId);
-      const insertIndex = overIndex >= 0 ? overIndex : overItems.length;
-
-      const updatedActiveTask = { ...activeTask, status: overContainer };
-
-      const newTasks = prev.filter((t) => t.id !== activeId);
-
-      const reorderedOver = [...overItems];
-      reorderedOver.splice(insertIndex, 0, updatedActiveTask);
-
-      let result = newTasks.filter((t) => t.status !== overContainer);
-      for (const t of reorderedOver) {
-        result.push(t);
-      }
-
-      return result;
-    });
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -214,7 +110,7 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
     if (!activeContainer || !overContainer) return;
 
     if (activeContainer === overContainer) {
-      const containerTasks = tasks
+      const containerTasks = filteredTasks
         .filter((t) => t.status === activeContainer)
         .sort((a, b) => a.position - b.position);
 
@@ -222,27 +118,16 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
       const overIndex = containerTasks.findIndex((t) => t.id === overId);
 
       if (activeIndex !== overIndex) {
-        const reordered = [...containerTasks];
-        const [moved] = reordered.splice(activeIndex, 1);
-        reordered.splice(overIndex, 0, moved);
-
-        setTasks((prev) =>
-          prev.map((t) => {
-            const idx = reordered.findIndex((r) => r.id === t.id);
-            return idx !== -1 ? { ...t, position: idx } : t;
-          })
-        );
-
-        await updateTaskPositions(activeId, overIndex);
+        await updateTaskStatus(activeId, activeContainer, overIndex);
       }
     } else {
       await updateTaskStatus(activeId, overContainer);
     }
   };
 
-  const activeTask = activeId ? tasks.find((t) => t.id === activeId) : null;
+  const activeTask = activeId ? filteredTasks.find((t) => t.id === activeId) : null;
 
-  if (isLoading) {
+  if (isLoading || isLoadingAgents) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex items-center gap-3 text-slate-400">
@@ -261,7 +146,7 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-semibold text-slate-100">{t('tasks.title')}</h2>
-          <p className="text-sm text-slate-500">{t('tasks.total', { count: tasks.length })}</p>
+          <p className="text-sm text-slate-500">{t('tasks.total', { count: filteredTasks.length })}</p>
         </div>
         <button
           onClick={() => setIsDialogOpen(true)}
@@ -284,7 +169,6 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className="flex-1 grid grid-cols-4 gap-4 min-h-0">
@@ -346,7 +230,7 @@ export function KanbanBoard({ projectId }: KanbanBoardProps) {
       <NewTaskDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
-        onCreate={createTask}
+        onCreate={handleCreateTask}
         agents={agents}
       />
     </div>

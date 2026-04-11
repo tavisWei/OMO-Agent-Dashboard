@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useProjectStore } from '../stores/projectStore';
@@ -6,10 +6,21 @@ import { useProjectStore } from '../stores/projectStore';
 export function Sidebar() {
   const { t } = useTranslation();
   const location = useLocation();
-  const { projects, selectedProjectId, selectProject } = useProjectStore();
+  const { projects, isLoading, error, fetchProjects } = useProjectStore();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
-  const totalCost = projects.reduce((sum, p) => sum + p.cost, 0);
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/project/')) {
+      setSelectedProjectId(location.pathname.split('/project/')[1]);
+    } else if (location.pathname === '/') {
+      setSelectedProjectId(null);
+    }
+  }, [location.pathname]);
 
   const navItems = [
     { path: '/', label: t('nav.dashboard'), icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -63,46 +74,44 @@ export function Sidebar() {
 
         {!isCollapsed && (
           <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
-            <div className="px-3 mb-2">
+            <div className="px-3 mb-2 flex items-center justify-between">
               <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
                 {t('projects.title')} ({projects.length})
               </span>
+              {isLoading && <span className="text-xs text-zinc-500 animate-pulse">...</span>}
             </div>
+            <Link
+              to="/"
+              onClick={() => setSelectedProjectId(null)}
+              className={`flex items-center justify-between px-3 py-2 mx-2 rounded-md transition-colors ${
+                selectedProjectId === null
+                  ? 'bg-[var(--color-bg-tertiary)] text-[var(--color-accent)]'
+                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text)]'
+              }`}
+            >
+              <span className="text-sm">All Projects</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">{projects.length}</span>
+            </Link>
             {projects.map((project) => (
               <Link
                 key={project.id}
                 to={`/project/${project.id}`}
-                onClick={() => selectProject(project.id)}
+                onClick={() => setSelectedProjectId(String(project.id))}
                 className={`flex items-center justify-between px-3 py-2 mx-2 rounded-md transition-colors ${
-                  selectedProjectId === project.id
+                  selectedProjectId === String(project.id)
                     ? 'bg-[var(--color-bg-tertiary)] text-[var(--color-accent)]'
                     : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text)]'
                 }`}
               >
                 <span className="text-sm truncate">{project.name}</span>
-                <span className="text-xs text-[var(--color-text-secondary)]">${project.cost.toFixed(2)}</span>
               </Link>
             ))}
+            {error && (
+              <p className="text-red-400 text-xs px-3 py-2">{error}</p>
+            )}
           </div>
         )}
       </nav>
-
-      <div className="p-3 border-t border-[var(--color-border)]">
-        <Link
-          to="/analytics"
-          className="flex items-center gap-3 px-3 py-2 rounded-md bg-[var(--color-bg-tertiary)] text-[var(--color-accent)] hover:opacity-80 transition-opacity"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="text-xs text-[var(--color-text-secondary)]">{t('projects.totalCost')}</span>
-              <span className="text-sm font-semibold">${totalCost.toFixed(2)}</span>
-            </div>
-          )}
-        </Link>
-      </div>
     </aside>
   );
 }

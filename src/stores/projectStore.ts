@@ -1,29 +1,76 @@
 import { create } from 'zustand';
 
-export interface Project {
-  id: string;
+interface Project {
+  id: number;
   name: string;
   description: string;
-  createdAt: string;
-  cost: number;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ProjectState {
   projects: Project[];
   selectedProjectId: string | null;
-  setProjects: (projects: Project[]) => void;
+  isLoading: boolean;
+  error: string | null;
+
+  fetchProjects: () => Promise<void>;
+  addProject: (name: string, description?: string) => Promise<void>;
+  deleteProject: (id: number) => Promise<void>;
   selectProject: (id: string | null) => void;
-  addProject: (project: Project) => void;
 }
 
+const API_BASE = 'http://localhost:3001/api';
+
 export const useProjectStore = create<ProjectState>((set) => ({
-  projects: [
-    { id: '1', name: 'OMO-SpecFlow', description: '规格驱动开发工作流系统', createdAt: '2024-01-15', cost: 128.50 },
-    { id: '2', name: 'AI-Chatbot', description: '智能客服对话系统', createdAt: '2024-02-20', cost: 89.25 },
-    { id: '3', name: 'Data-Processor', description: '大规模数据处理平台', createdAt: '2024-03-10', cost: 256.80 },
-  ],
+  projects: [],
   selectedProjectId: null,
-  setProjects: (projects) => set({ projects }),
+  isLoading: false,
+  error: null,
+
+  fetchProjects: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const res = await fetch(`${API_BASE}/projects`);
+      if (!res.ok) throw new Error('Failed to fetch projects');
+      const data = await res.json();
+      set({ projects: data, isLoading: false });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Unknown error', isLoading: false });
+    }
+  },
+
+  addProject: async (name: string, description?: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const res = await fetch(`${API_BASE}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description }),
+      });
+      if (!res.ok) throw new Error('Failed to add project');
+      const newProject = await res.json();
+      set((state) => ({ projects: [...state.projects, newProject], isLoading: false }));
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Unknown error', isLoading: false });
+      throw err;
+    }
+  },
+
+  deleteProject: async (id: number) => {
+    try {
+      set({ isLoading: true, error: null });
+      const res = await fetch(`${API_BASE}/projects/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete project');
+      set((state) => ({
+        projects: state.projects.filter((p) => p.id !== id),
+        isLoading: false,
+      }));
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Unknown error', isLoading: false });
+      throw err;
+    }
+  },
+
   selectProject: (id) => set({ selectedProjectId: id }),
-  addProject: (project) => set((state) => ({ projects: [...state.projects, project] })),
 }));
