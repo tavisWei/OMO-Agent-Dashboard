@@ -10,9 +10,12 @@ import AgentConfigPanel from './components/AgentConfigPanel';
 import { useThemeStore } from './stores/themeStore';
 import { useAgentStore } from './stores/agentStore';
 import { useProjectStore } from './stores/projectStore';
+import { useAgentRuntime } from './hooks/useAgentRuntime';
+import { AgentRuntimePanel } from './components/AgentRuntimeCard';
 import type { AgentWithUsage } from './types';
 
 function Dashboard() {
+  useAgentRuntime();
   const { agents, isLoading, error, fetchAgents } = useAgentStore();
   const { projects, fetchProjects } = useProjectStore();
   const [configPanelOpen, setConfigPanelOpen] = useState(false);
@@ -69,6 +72,8 @@ function Dashboard() {
       ) : (
         <AgentGrid agents={filteredAgents} onEditAgent={handleEditAgent} />
       )}
+
+      <AgentRuntimePanel />
 
       <AgentConfigPanel
         agent={selectedAgent}

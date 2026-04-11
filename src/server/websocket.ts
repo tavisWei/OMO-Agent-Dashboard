@@ -1,5 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import type { IncomingMessage } from 'http';
+import { agentStatusMonitor } from './agentStatus.js';
 
 const PORT = 3001;
 const HEARTBEAT_INTERVAL = 30000;
@@ -49,6 +50,7 @@ export function initializeWebSocketServer(expressServer?: any): WebSocketServer 
 
   wss.on('connection', (ws: WebSocket, _req: IncomingMessage) => {
     clients.add(ws);
+    agentStatusMonitor.addClient(ws);
     console.log(`[WS] Client connected (${clients.size} total)`);
 
     (ws as any).isAlive = true;
@@ -59,6 +61,10 @@ export function initializeWebSocketServer(expressServer?: any): WebSocketServer 
       timestamp: Date.now()
     };
     ws.send(JSON.stringify(welcome));
+
+    // Send current agent status to new client
+    const currentStatus = agentStatusMonitor.getStatus();
+    ws.send(JSON.stringify({ type: 'agent_status', data: currentStatus }));
 
     ws.on('message', (data: Buffer) => {
       try {
@@ -74,6 +80,7 @@ export function initializeWebSocketServer(expressServer?: any): WebSocketServer 
 
     ws.on('close', () => {
       clients.delete(ws);
+      agentStatusMonitor.removeClient(ws);
       console.log(`[WS] Client disconnected (${clients.size} total)`);
     });
 

@@ -7,6 +7,8 @@ import tasksRouter from './routes/tasks.js';
 import costRouter from './routes/cost.js';
 import activityLogsRouter from './routes/activity-logs.js';
 import chatRouter from './routes/chat.js';
+import tmuxRouter from './routes/tmux.js';
+import { initializeWebSocketServer } from './websocket.js';
 
 const app = express();
 const PORT = 3001;
@@ -31,6 +33,7 @@ app.use('/api/tasks', tasksRouter);
 app.use('/api/cost-records', costRouter);
 app.use('/api/activity-logs', activityLogsRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/tmux', tmuxRouter);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: 'Not found' });
@@ -76,13 +79,16 @@ async function start() {
     // Sync agents from OMO config
     await syncOMOConfig();
     
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
+    
+    // Initialize WebSocket server with agent status monitoring
+    initializeWebSocketServer(server);
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
   }
-}
+ }
 
 start();
