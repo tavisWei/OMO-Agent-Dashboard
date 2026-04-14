@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import {
+  createAgent,
   getAllAgents,
   getAgent,
   updateAgent,
   deleteAgent
 } from '../../db/index.js';
 import { saveAgentConfig } from '../../config/omo-writer.js';
+import { broadcastAll, createWSMessage } from '../websocket.js';
 
 const router = Router();
 
@@ -16,6 +18,42 @@ router.get('/', (_req, res) => {
   } catch (error) {
     console.error('Error getting agents:', error);
     res.status(500).json({ error: 'Failed to get agents' });
+  }
+});
+
+router.post('/', (req, res) => {
+  try {
+    const {
+      name,
+      project_id = null,
+      model_id = null,
+      model = 'gpt-4',
+      temperature = 0.7,
+      top_p = 0.9,
+      max_tokens = 4096,
+      status = 'idle',
+      config_path = null,
+    } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+
+    const agent = createAgent(name, project_id, model, {
+      model_id,
+      temperature,
+      top_p,
+      max_tokens,
+      status,
+      config_path,
+      source: 'ui_created',
+    });
+
+    broadcastAll(createWSMessage('agent_created', agent));
+    res.status(201).json(agent);
+  } catch (error) {
+    console.error('Error creating agent:', error);
+    res.status(500).json({ error: 'Failed to create agent' });
   }
 });
 
@@ -85,10 +123,20 @@ router.delete('/:id', (req, res) => {
     if (isNaN(id)) {
       return res.status(400).json({ error: 'Invalid ID' });
     }
+    const agent = getAgent(id);
+    if (!agent) {
+      return res.status(404).json({ error: 'Agent not found' });
+    }
+    if (agent.source !== 'ui_created') {
+      return res.status(403).json({ error: 'OMO config agents cannot be deleted' });
+    }
+
     const success = deleteAgent(id);
     if (!success) {
       return res.status(404).json({ error: 'Agent not found' });
     }
+
+    broadcastAll(createWSMessage('agent_deleted', { id }));
     res.status(204).send();
   } catch (error) {
     console.error('Error deleting agent:', error);

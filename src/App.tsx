@@ -4,9 +4,12 @@ import { AppLayout } from './components/AppLayout';
 import { CostOverview } from './components/CostOverview';
 import { SettingsPage } from './components/SettingsPage';
 import { ActivityFeed } from './components/ActivityFeed';
-import { AgentChat } from './components/AgentChat';
 import { AgentGrid } from './components/AgentGrid';
 import { KanbanBoard } from './components/KanbanBoard';
+import { AgentDetail } from './components/AgentDetail';
+import { TaskDetail } from './components/TaskDetail';
+import { ModelLibrary } from './components/ModelLibrary';
+import { ProjectDetail } from './components/ProjectDetail';
 import AgentConfigPanel from './components/AgentConfigPanel';
 import { useThemeStore } from './stores/themeStore';
 import { useAgentStore } from './stores/agentStore';
@@ -71,7 +74,7 @@ function Agents() {
       ) : error ? (
         <p className="text-red-500">Error: {error}</p>
       ) : (
-        <AgentGrid agents={filteredAgents} onEditAgent={handleEditAgent} />
+        <AgentGrid agents={filteredAgents} onEditAgent={handleEditAgent} onRefresh={fetchAgents} />
       )}
 
       <AgentRuntimePanel />
@@ -82,24 +85,6 @@ function Agents() {
         onClose={handleCloseConfigPanel}
         onSave={fetchAgents}
       />
-    </div>
-  );
-}
-
-function ProjectDetail() {
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[var(--color-text)]">Project Detail</h1>
-      <p className="text-[var(--color-text-secondary)]">Project details will be displayed here.</p>
-    </div>
-  );
-}
-
-function AgentDetail() {
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[var(--color-text)]">Agent Detail</h1>
-      <p className="text-[var(--color-text-secondary)]">Agent details will be displayed here.</p>
     </div>
   );
 }
@@ -116,14 +101,6 @@ function Activity() {
   return (
     <div className="h-full">
       <ActivityFeed refreshInterval={15000} />
-    </div>
-  );
-}
-
-function Chat() {
-  return (
-    <div className="h-full">
-      <AgentChat className="h-full" />
     </div>
   );
 }
@@ -149,13 +126,14 @@ function App() {
         <Routes>
           <Route element={<AppLayout />}>
             <Route path="/" element={<KanbanBoard />} />
+            <Route path="/tasks/:id" element={<TaskDetail />} />
+            <Route path="/models" element={<ModelLibrary />} />
             <Route path="/agents" element={<Agents />} />
             <Route path="/project/:id" element={<ProjectDetail />} />
             <Route path="/agent/:id" element={<AgentDetail />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/activity" element={<Activity />} />
-            <Route path="/chat" element={<Chat />} />
           </Route>
         </Routes>
       </div>

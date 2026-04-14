@@ -9,8 +9,8 @@ let wss: WebSocketServer | null = null;
 let heartbeatTimer: NodeJS.Timeout | null = null;
 const clients = new Set<WebSocket>();
 
-export type WSServerMessageType = 'agent_update' | 'task_update' | 'heartbeat' | 'config_change';
-export type WSMessageType = WSServerMessageType | 'welcome';
+export type WSServerMessageType = 'agent_update' | 'agent_created' | 'agent_deleted' | 'task_update' | 'task_created' | 'task_updated' | 'task_deleted' | 'orchestration_update' | 'heartbeat' | 'config_change';
+export type WSMessageType = WSServerMessageType | 'welcome' | 'agent_status';
 
 export interface WSMessage {
   type: WSMessageType;

@@ -50,7 +50,7 @@ export const useCostStore = create<CostState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const { timeRange } = get();
-      const response = await fetch(`${API_BASE}/cost-records?range=${timeRange}`);
+      const response = await fetch(`${API_BASE}/cost-records?dateRange=${timeRange}`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch cost records: ${response.statusText}`);

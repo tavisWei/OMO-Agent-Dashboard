@@ -92,7 +92,7 @@ function getActivityLogsByAgentWithName(agentId: number, limit: number, offset: 
   const { getDatabaseSync } = require('../../db/index.js');
   const database = getDatabaseSync();
   const result = database.exec(
-    `SELECT al.id, al.agent_id, a.name as agent_name, al.action, al.details, al.created_at
+    `SELECT al.id, al.agent_id, COALESCE(al.agent_name, a.name) as agent_name, al.action, al.details, al.created_at
      FROM activity_logs al
      LEFT JOIN agents a ON al.agent_id = a.id
      WHERE al.agent_id = ?
@@ -116,7 +116,7 @@ function getRecentActivityLogsWithName(limit: number, offset: number): ActivityL
   const { getDatabaseSync } = require('../../db/index.js');
   const database = getDatabaseSync();
   const result = database.exec(
-    `SELECT al.id, al.agent_id, a.name as agent_name, al.action, al.details, al.created_at
+    `SELECT al.id, al.agent_id, COALESCE(al.agent_name, a.name) as agent_name, al.action, al.details, al.created_at
      FROM activity_logs al
      LEFT JOIN agents a ON al.agent_id = a.id
      ORDER BY al.created_at DESC

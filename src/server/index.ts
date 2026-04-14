@@ -3,10 +3,10 @@ import { getDatabase, createAgent, clearAgents } from '../db/index.js';
 import { getAgents, getConfigPath } from '../config/omo-reader.js';
 import projectsRouter from './routes/projects.js';
 import agentsRouter from './routes/agents.js';
+import modelsRouter from './routes/models.js';
 import tasksRouter from './routes/tasks.js';
 import costRouter from './routes/cost.js';
 import activityLogsRouter from './routes/activity-logs.js';
-import chatRouter from './routes/chat.js';
 import tmuxRouter from './routes/tmux.js';
 import { initializeWebSocketServer } from './websocket.js';
 import { agentStatusMonitor } from './agentStatus.js';
@@ -25,7 +25,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 });
 
 app.use((_req: Request, res: Response, next: NextFunction) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3001');
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3002');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   next();
@@ -33,10 +33,10 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 
 app.use('/api/projects', projectsRouter);
 app.use('/api/agents', agentsRouter);
+app.use('/api/models', modelsRouter);
 app.use('/api/tasks', tasksRouter);
 app.use('/api/cost-records', costRouter);
 app.use('/api/activity-logs', activityLogsRouter);
-app.use('/api/chat', chatRouter);
 app.use('/api/tmux', tmuxRouter);
 
 app.use((_req: Request, res: Response) => {
@@ -59,15 +59,16 @@ async function syncOMOConfig() {
   
   console.log(`Found ${omoAgents.length} agents in OMO config`);
   
-  // Clear existing agents and sync from OMO config
-  clearAgents();
+  clearAgents('omo_config');
   
   for (const agent of omoAgents) {
     createAgent(agent.name, null, agent.model || 'gpt-4', {
+      model_id: null,
       temperature: agent.temperature,
       top_p: agent.top_p,
       max_tokens: agent.max_tokens,
-      status: 'idle'
+      status: 'idle',
+      source: 'omo_config'
     });
     console.log(`  - Synced agent: ${agent.name} (${agent.model || 'gpt-4'})`);
   }
@@ -124,7 +125,7 @@ function startTmuxPolling() {
         });
       
       sessions.forEach(session => {
-        const status = session.status as 'idle' | 'running' | 'thinking' | 'error' | 'offline';
+        const status = session.status as 'idle' | 'running' | 'thinking' | 'error';
         agentStatusMonitor.updateStatus(session.name, status, session.name);
       });
       

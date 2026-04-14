@@ -1,8 +1,9 @@
 import WebSocket from 'ws';
+import type { AgentStatus } from '../types/index.js';
 
 interface AgentRuntimeStatus {
   agentId: string;
-  status: 'idle' | 'running' | 'thinking' | 'error' | 'offline';
+  status: AgentStatus;
   lastUpdate: string;
   sessionName?: string;
 }

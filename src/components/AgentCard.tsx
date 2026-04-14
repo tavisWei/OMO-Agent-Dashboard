@@ -43,7 +43,16 @@ export function AgentCard({ agent, onEdit }: AgentCardProps) {
         <div className="flex items-center gap-3">
           <span className="text-2xl">{icon}</span>
           <div>
-            <h3 className="font-semibold text-slate-100">{agent.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-slate-100">{agent.name}</h3>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                agent.source === 'omo_config' 
+                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20' 
+                  : 'bg-purple-500/20 text-purple-400 border border-purple-500/20'
+              }`}>
+                {agent.source === 'omo_config' ? 'OMO' : 'Custom'}
+              </span>
+            </div>
             <StatusBadge status={agent.status} />
           </div>
         </div>

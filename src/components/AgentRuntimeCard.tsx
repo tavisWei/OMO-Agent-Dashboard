@@ -3,6 +3,7 @@ import { useAgentRuntimeStore, AgentRuntime } from '../stores/agentRuntimeStore'
 const statusColors: Record<AgentRuntime['status'], string> = {
   idle: 'bg-gray-400',
   running: 'bg-green-500',
+  stopped: 'bg-slate-600',
   thinking: 'bg-yellow-500',
   error: 'bg-red-500',
   offline: 'bg-gray-300',
@@ -11,6 +12,7 @@ const statusColors: Record<AgentRuntime['status'], string> = {
 const statusLabels: Record<AgentRuntime['status'], string> = {
   idle: 'Idle',
   running: 'Running',
+  stopped: 'Stopped',
   thinking: 'Thinking',
   error: 'Error',
   offline: 'Offline',

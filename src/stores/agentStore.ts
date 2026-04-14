@@ -1,16 +1,5 @@
 import { create } from 'zustand';
-
-export interface Agent {
-  id: number;
-  name: string;
-  model: string;
-  temperature: number;
-  top_p: number;
-  max_tokens: number;
-  status: 'idle' | 'running' | 'error' | 'stopped';
-  last_heartbeat: string | null;
-  project_id: number | null;
-}
+import type { Agent } from '../types';
 
 interface AgentState {
   agents: Agent[];
@@ -21,6 +10,18 @@ interface AgentState {
   ws: WebSocket | null;
 
   fetchAgents: () => Promise<void>;
+  createAgent: (agent: {
+    name: string;
+    project_id?: number | null;
+    model_id?: number | null;
+    model?: string;
+    temperature?: number;
+    top_p?: number;
+    max_tokens?: number;
+    status?: Agent['status'];
+    config_path?: string | null;
+  }) => Promise<Agent>;
+  deleteAgent: (id: number) => Promise<void>;
   selectAgent: (id: number | null) => void;
   updateAgentLocal: (id: number, updates: Partial<Agent>) => void;
   setWsConnected: (connected: boolean) => void;
@@ -58,6 +59,59 @@ export const useAgentStore = create<AgentState>((set, get) => ({
     }
   },
 
+  createAgent: async (agent) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await fetch(`${API_BASE}/agents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(agent),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => null);
+        throw new Error(error?.error || `Failed to create agent: ${response.statusText}`);
+      }
+
+      const createdAgent = await response.json();
+      set((state) => ({
+        agents: state.agents.some((existingAgent) => existingAgent.id === createdAgent.id)
+          ? state.agents
+          : [createdAgent, ...state.agents],
+        isLoading: false,
+      }));
+      return createdAgent;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create agent';
+      set({ error: message, isLoading: false });
+      throw error;
+    }
+  },
+
+  deleteAgent: async (id) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await fetch(`${API_BASE}/agents/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => null);
+        throw new Error(error?.error || `Failed to delete agent: ${response.statusText}`);
+      }
+
+      set((state) => ({
+        agents: state.agents.filter((agent) => agent.id !== id),
+        selectedAgentId: state.selectedAgentId === id ? null : state.selectedAgentId,
+        isLoading: false,
+      }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete agent';
+      set({ error: message, isLoading: false });
+      throw error;
+    }
+  },
+
   selectAgent: (id) => set({ selectedAgentId: id }),
 
   updateAgentLocal: (id, updates) => {
@@ -74,6 +128,23 @@ export const useAgentStore = create<AgentState>((set, get) => ({
     const { updateAgentLocal, fetchAgents } = get();
 
     switch (message.type) {
+      case 'agent_created': {
+        const createdAgent = message.payload as Agent;
+        set((state) => ({
+          agents: state.agents.some((agent) => agent.id === createdAgent.id)
+            ? state.agents.map((agent) => (agent.id === createdAgent.id ? createdAgent : agent))
+            : [createdAgent, ...state.agents],
+        }));
+        break;
+      }
+      case 'agent_deleted': {
+        const deletedId = message.payload.id as number;
+        set((state) => ({
+          agents: state.agents.filter((agent) => agent.id !== deletedId),
+          selectedAgentId: state.selectedAgentId === deletedId ? null : state.selectedAgentId,
+        }));
+        break;
+      }
       case 'agent_update': {
         const { id, ...updates } = message.payload;
         updateAgentLocal(id, updates);

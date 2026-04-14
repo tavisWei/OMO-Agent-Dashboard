@@ -193,8 +193,8 @@ describe('Agents API', () => {
   describe('GET /api/agents', () => {
     it('returns all agents', async () => {
       const mockAgents: Agent[] = [
-        { id: 1, name: 'Agent 1', model: 'gpt-4', status: 'idle', project_id: null, temperature: 0.7, top_p: 0.9, max_tokens: 4096, last_heartbeat: null, config_path: null, created_at: '', updated_at: '' },
-        { id: 2, name: 'Agent 2', model: 'gpt-4', status: 'running', project_id: null, temperature: 0.7, top_p: 0.9, max_tokens: 4096, last_heartbeat: null, config_path: null, created_at: '', updated_at: '' },
+        { id: 1, name: 'Agent 1', model_id: null, model: 'gpt-4', status: 'idle', project_id: null, temperature: 0.7, top_p: 0.9, max_tokens: 4096, last_heartbeat: null, config_path: null, source: 'ui_created', created_at: '', updated_at: '' },
+        { id: 2, name: 'Agent 2', model_id: null, model: 'gpt-4', status: 'running', project_id: null, temperature: 0.7, top_p: 0.9, max_tokens: 4096, last_heartbeat: null, config_path: null, source: 'ui_created', created_at: '', updated_at: '' },
       ];
       vi.mocked(getAllAgents).mockReturnValue(mockAgents);
 
@@ -219,7 +219,7 @@ describe('Agents API', () => {
 
   describe('GET /api/agents/:id', () => {
     it('returns an agent by id', async () => {
-      const agent: Agent = { id: 1, name: 'Agent 1', model: 'gpt-4', status: 'idle', project_id: null, temperature: 0.7, top_p: 0.9, max_tokens: 4096, last_heartbeat: null, config_path: null, created_at: '', updated_at: '' };
+      const agent: Agent = { id: 1, name: 'Agent 1', model_id: null, model: 'gpt-4', status: 'idle', project_id: null, temperature: 0.7, top_p: 0.9, max_tokens: 4096, last_heartbeat: null, config_path: null, source: 'ui_created', created_at: '', updated_at: '' };
       vi.mocked(getAgent).mockReturnValue(agent);
 
       const response = await request(app).get('/api/agents/1');
@@ -240,7 +240,7 @@ describe('Agents API', () => {
 
   describe('PUT /api/agents/:id', () => {
     it('updates an agent', async () => {
-      const updated: Agent = { id: 1, name: 'Updated Agent', model: 'gpt-4', status: 'running', project_id: null, temperature: 0.8, top_p: 0.9, max_tokens: 4096, last_heartbeat: null, config_path: null, created_at: '', updated_at: '' };
+      const updated: Agent = { id: 1, name: 'Updated Agent', model_id: null, model: 'gpt-4', status: 'running', project_id: null, temperature: 0.8, top_p: 0.9, max_tokens: 4096, last_heartbeat: null, config_path: null, source: 'ui_created', created_at: '', updated_at: '' };
       vi.mocked(updateAgent).mockReturnValue(true);
       vi.mocked(getAgent).mockReturnValue(updated);
 
@@ -275,6 +275,7 @@ describe('Agents API', () => {
 
   describe('DELETE /api/agents/:id', () => {
     it('deletes an agent', async () => {
+      vi.mocked(getAgent).mockReturnValue({ id: 1, name: 'Agent 1', model_id: null, model: 'gpt-4', status: 'idle', project_id: null, temperature: 0.7, top_p: 0.9, max_tokens: 4096, last_heartbeat: null, config_path: null, source: 'ui_created', created_at: '', updated_at: '' });
       vi.mocked(deleteAgent).mockReturnValue(true);
 
       const response = await request(app).delete('/api/agents/1');
@@ -284,12 +285,21 @@ describe('Agents API', () => {
     });
 
     it('returns 404 if agent not found', async () => {
-      vi.mocked(deleteAgent).mockReturnValue(false);
+      vi.mocked(getAgent).mockReturnValue(null);
 
       const response = await request(app).delete('/api/agents/999');
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({ error: 'Agent not found' });
+    });
+
+    it('returns 403 for OMO config agents', async () => {
+      vi.mocked(getAgent).mockReturnValue({ id: 2, name: 'Agent 2', model_id: null, model: 'gpt-4', status: 'idle', project_id: null, temperature: 0.7, top_p: 0.9, max_tokens: 4096, last_heartbeat: null, config_path: null, source: 'omo_config', created_at: '', updated_at: '' });
+
+      const response = await request(app).delete('/api/agents/2');
+
+      expect(response.status).toBe(403);
+      expect(response.body).toEqual({ error: 'OMO config agents cannot be deleted' });
     });
   });
 });

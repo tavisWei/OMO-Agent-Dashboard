@@ -234,7 +234,8 @@ main() {
     echo "📝 查看状态:"
     echo "   ./scripts/status.sh"
     echo ""
-    echo "🌐 访问: http://localhost:3001"
+    echo "🌐 前端访问: http://localhost:3002
+🔌 后端 API: http://localhost:3001"
     echo ""
 }
 

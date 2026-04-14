@@ -93,19 +93,19 @@ describe('Database Schema', () => {
       const result = database.exec('SELECT * FROM agents WHERE name = ?', ['Test Agent']);
       expect(result[0]).toBeDefined();
       expect(result[0].values[0][1]).toBe('Test Agent');
-      expect(result[0].values[0][3]).toBe('gpt-4');
-      expect(result[0].values[0][4]).toBe(0.8);
+      expect(result[0].values[0][4]).toBe('gpt-4');
+      expect(result[0].values[0][5]).toBe(0.8);
     });
 
     it('creates an agent with default values', () => {
       const database = getTestDb();
       database.run("INSERT INTO agents (name) VALUES ('Default Agent')");
       const result = database.exec('SELECT * FROM agents WHERE name = ?', ['Default Agent']);
-      expect(result[0].values[0][3]).toBe('gpt-4');
-      expect(result[0].values[0][4]).toBe(0.7);
-      expect(result[0].values[0][5]).toBe(0.9);
-      expect(result[0].values[0][6]).toBe(4096);
-      expect(result[0].values[0][7]).toBe('idle');
+      expect(result[0].values[0][4]).toBe('gpt-4');
+      expect(result[0].values[0][5]).toBe(0.7);
+      expect(result[0].values[0][6]).toBe(0.9);
+      expect(result[0].values[0][7]).toBe(4096);
+      expect(result[0].values[0][8]).toBe('idle');
     });
 
     it('gets all agents', () => {
@@ -132,7 +132,7 @@ describe('Database Schema', () => {
       database.run('UPDATE agents SET name = ?, status = ? WHERE id = ?', ['Updated Agent', 'running', 1]);
       const result = database.exec('SELECT * FROM agents WHERE id = 1');
       expect(result[0].values[0][1]).toBe('Updated Agent');
-      expect(result[0].values[0][7]).toBe('running');
+      expect(result[0].values[0][8]).toBe('running');
     });
 
     it('deletes an agent', () => {
@@ -153,9 +153,9 @@ describe('Database Schema', () => {
       );
       const result = database.exec('SELECT * FROM tasks WHERE title = ?', ['Test Task']);
       expect(result[0]).toBeDefined();
-      expect(result[0].values[0][3]).toBe('Test Task');
-      expect(result[0].values[0][4]).toBe('A test task');
-      expect(result[0].values[0][5]).toBe('backlog');
+      expect(result[0].values[0][4]).toBe('Test Task');
+      expect(result[0].values[0][5]).toBe('A test task');
+      expect(result[0].values[0][6]).toBe('backlog');
     });
 
     it('auto-increments task position', () => {
@@ -174,8 +174,8 @@ describe('Database Schema', () => {
       database.run("INSERT INTO tasks (title, description, status) VALUES ('Original Task', '', 'backlog')");
       database.run('UPDATE tasks SET title = ?, status = ? WHERE id = ?', ['Updated Task', 'in_progress', 1]);
       const result = database.exec('SELECT * FROM tasks WHERE id = 1');
-      expect(result[0].values[0][3]).toBe('Updated Task');
-      expect(result[0].values[0][5]).toBe('in_progress');
+      expect(result[0].values[0][4]).toBe('Updated Task');
+      expect(result[0].values[0][6]).toBe('in_progress');
     });
 
     it('deletes a task', () => {
@@ -231,8 +231,8 @@ describe('Database Schema', () => {
       database.run("INSERT INTO activity_logs (agent_id, action, details) VALUES (?, ?, ?)", [1, 'started', 'Agent started successfully']);
       const result = database.exec('SELECT * FROM activity_logs WHERE agent_id = ?', [1]);
       expect(result[0]).toBeDefined();
-      expect(result[0].values[0][2]).toBe('started');
-      expect(result[0].values[0][3]).toBe('Agent started successfully');
+      expect(result[0].values[0][3]).toBe('started');
+      expect(result[0].values[0][4]).toBe('Agent started successfully');
     });
 
     it('gets recent activity logs', () => {

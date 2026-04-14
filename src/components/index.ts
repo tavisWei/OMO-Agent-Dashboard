@@ -1,5 +1,4 @@
 export { AgentCard } from './AgentCard';
-export { AgentChat } from './AgentChat';
 export { AgentGrid } from './AgentGrid';
 export { KanbanBoard } from './KanbanBoard';
 export { NewTaskDialog } from './NewTaskDialog';

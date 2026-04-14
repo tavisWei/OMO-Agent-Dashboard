@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+import type { AgentStatus } from '../types';
 
-export type AgentRuntimeStatus = 'idle' | 'running' | 'thinking' | 'error' | 'offline';
+export type AgentRuntimeStatus = AgentStatus;
 
 export interface AgentRuntime {
   agentId: string;

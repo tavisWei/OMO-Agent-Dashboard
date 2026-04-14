@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { useThemeStore } from '../stores/themeStore';
+import { ErrorBoundary } from './ErrorBoundary';
 
 export function AppLayout() {
   const { theme } = useThemeStore();
@@ -28,7 +29,9 @@ export function AppLayout() {
           className="flex-1 overflow-y-auto p-6 bg-[var(--color-bg-primary)]"
           style={{ minWidth: '1024px' }}
         >
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

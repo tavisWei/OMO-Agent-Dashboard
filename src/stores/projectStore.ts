@@ -20,7 +20,7 @@ interface ProjectState {
   selectProject: (id: string | null) => void;
 }
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = '/api';
 
 export const useProjectStore = create<ProjectState>((set) => ({
   projects: [],
