@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Link, Navigate, Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout } from './components/AppLayout';
 import { SettingsPage } from './components/SettingsPage';
@@ -10,13 +10,11 @@ import { ModelLibrary } from './components/ModelLibrary';
 import { ProjectDetail } from './components/ProjectDetail';
 import { AgentMonitorView } from './components/AgentMonitorView';
 import { useThemeStore } from './stores/themeStore';
-import { useAgentRuntime } from './hooks/useAgentRuntime';
 import { useDashboardStore } from './stores/dashboardStore';
 import { ROUTES } from './routes';
 
 function Agents() {
   const { t } = useTranslation();
-  useAgentRuntime();
   const { config, configLoading, configError, fetchConfig } = useDashboardStore();
 
   useEffect(() => {
@@ -45,7 +43,7 @@ function Agents() {
                     <div className="font-medium text-[var(--color-text)] text-sm truncate">{entry.key}</div>
                     <div className="text-xs text-[var(--color-text-secondary)] truncate">{entry.model}{entry.variant ? ` · ${entry.variant}` : ''}</div>
                   </div>
-                  <a href={ROUTES.MODELS} className="text-xs text-[var(--color-accent)] hover:underline shrink-0 ml-2">{t('models.editModel')}</a>
+                  <Link to={ROUTES.MODELS} className="text-xs text-[var(--color-accent)] hover:underline shrink-0 ml-2">{t('models.editModel')}</Link>
                 </div>
               ))}
             </section>
@@ -61,7 +59,7 @@ function Agents() {
                     <div className="font-medium text-[var(--color-text)] text-sm truncate">{entry.key}</div>
                     <div className="text-xs text-[var(--color-text-secondary)] truncate">{entry.model}{entry.variant ? ` · ${entry.variant}` : ''}</div>
                   </div>
-                  <a href={ROUTES.MODELS} className="text-xs text-[var(--color-accent)] hover:underline shrink-0 ml-2">{t('models.editModel')}</a>
+                  <Link to={ROUTES.MODELS} className="text-xs text-[var(--color-accent)] hover:underline shrink-0 ml-2">{t('models.editModel')}</Link>
                 </div>
               ))}
             </section>

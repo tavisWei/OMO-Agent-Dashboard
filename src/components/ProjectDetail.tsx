@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDashboardStore } from '../stores/dashboardStore';
@@ -10,11 +10,7 @@ export function ProjectDetail() {
   const navigate = useNavigate();
   const projectId = id ?? null;
 
-  const { projects, sessions, fetchSessions, isLoading } = useDashboardStore();
-
-  useEffect(() => {
-    fetchSessions();
-  }, [fetchSessions]);
+  const { projects, sessions, isLoading } = useDashboardStore();
 
   const project = useMemo(() => {
     return projects.find((p) => p.id === projectId) || null;
