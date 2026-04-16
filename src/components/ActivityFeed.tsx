@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { ActivityLog, ActivityType, Agent } from '../types';
+import { useState, useEffect } from 'react';
+import type { ActivityLog, ActivityType } from '../types';
 import { useActivityStore } from '../stores/activityStore';
+import { useDashboardStore } from '../stores/dashboardStore';
 
 const ACTIVITY_ICONS: Record<ActivityType, { icon: string; color: string; bg: string }> = {
   started: { icon: '▶', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
@@ -42,43 +43,45 @@ function formatAbsoluteTime(dateString: string): string {
 
 interface ActivityItemProps {
   log: ActivityLog;
+  compact?: boolean;
 }
 
-function ActivityItem({ log }: ActivityItemProps) {
+function ActivityItem({ log, compact = false }: ActivityItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const config = ACTIVITY_ICONS[log.action] || ACTIVITY_ICONS.config_changed;
   const hasDetails = log.details && log.details.trim().length > 0;
 
   return (
     <div className="group relative border-b border-[var(--color-border)] last:border-b-0">
-      <div className="flex items-start gap-3 p-3 hover:bg-[var(--color-bg-tertiary)] transition-colors duration-150">
-        <div className={`flex-shrink-0 w-8 h-8 rounded-lg ${config.bg} flex items-center justify-center text-sm`}>
+      <div className={`flex items-start gap-3 hover:bg-[var(--color-bg-tertiary)] transition-colors duration-150 ${compact ? 'p-2' : 'p-3'}`}>
+        <div className={`flex-shrink-0 ${compact ? 'w-6 h-6' : 'w-8 h-8'} rounded-lg ${config.bg} flex items-center justify-center ${compact ? 'text-xs' : 'text-sm'}`}>
           <span className={config.color}>{config.icon}</span>
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-sm font-medium ${config.color}`}>
+              <span className={`${compact ? 'text-xs' : 'text-sm'} font-medium ${config.color}`}>
                 {ACTIVITY_LABELS[log.action] || log.action}
               </span>
               {log.agent_name && (
-                <span className="text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg-tertiary)] px-2 py-0.5 rounded">
+                <span className={`text-[10px] text-[var(--color-text-secondary)] bg-[var(--color-bg-tertiary)] px-1.5 py-0.5 rounded`}>
                   {log.agent_name}
                 </span>
               )}
             </div>
             <span
-              className="text-xs text-[var(--color-text-secondary)] cursor-help flex-shrink-0"
+              className={`text-[10px] text-[var(--color-text-secondary)] cursor-help flex-shrink-0`}
               title={formatAbsoluteTime(log.created_at)}
             >
               {formatRelativeTime(log.created_at)}
             </span>
           </div>
 
-          {hasDetails && (
+          {!compact && hasDetails && (
             <div className="mt-1">
               <button
+                type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors flex items-center gap-1"
               >
@@ -102,15 +105,15 @@ function ActivityItem({ log }: ActivityItemProps) {
 
 interface ActivityFeedProps {
   refreshInterval?: number;
+  compact?: boolean;
 }
 
-const API_BASE = '/api';
-
-export function ActivityFeed({ refreshInterval = 15000 }: ActivityFeedProps) {
-  const [agents, setAgents] = useState<Agent[]>([]);
+export function ActivityFeed({ refreshInterval = 15000, compact = false }: ActivityFeedProps) {
   const [selectedTypes, setSelectedTypes] = useState<ActivityType[]>([]);
-  const [selectedAgentId, setSelectedAgentId] = useState<number | null>(null);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<string>('all');
+  const sessions = useDashboardStore((state) => state.sessions);
+  const selectedProjectId = useDashboardStore((state) => state.selectedProjectId);
 
   const { 
     logs, 
@@ -122,26 +125,15 @@ export function ActivityFeed({ refreshInterval = 15000 }: ActivityFeedProps) {
     setFilters,
   } = useActivityStore();
 
-  const fetchAgents = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_BASE}/agents`);
-      if (!response.ok) throw new Error('Failed to fetch agents');
-      const data = await response.json();
-      setAgents(data);
-    } catch (err) {
-      console.error('Error fetching agents:', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAgents();
-  }, [fetchAgents]);
+  const availableAgents = sessions
+    .map((session) => ({ id: session.id, name: session.agentLabel || session.title }))
+    .filter((agent, index, all) => all.findIndex((entry) => entry.id === agent.id) === index);
 
   // Sync filters to store and fetch
   useEffect(() => {
-    setFilters({ types: selectedTypes, agentId: selectedAgentId, timeRange });
+    setFilters({ types: selectedTypes, agentId: selectedAgentId, timeRange, project: selectedProjectId ?? null });
     fetchLogs(true);
-  }, [selectedTypes, selectedAgentId, timeRange, setFilters]);
+  }, [selectedTypes, selectedAgentId, timeRange, selectedProjectId, setFilters, fetchLogs]);
 
   // Auto-refresh
   useEffect(() => {
@@ -169,63 +161,67 @@ export function ActivityFeed({ refreshInterval = 15000 }: ActivityFeedProps) {
   const allTypes: ActivityType[] = ['started', 'stopped', 'error', 'config_changed', 'task_assigned', 'task_completed'];
 
   return (
-    <div className="flex flex-col h-full bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] overflow-hidden">
-      <div className="p-4 border-b border-[var(--color-border)] space-y-3">
-        <h3 className="text-sm font-semibold text-[var(--color-text)]">Filters</h3>
-        
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex flex-wrap gap-2">
-            {allTypes.map(type => {
-              const config = ACTIVITY_ICONS[type];
-              const isSelected = selectedTypes.includes(type);
-              return (
-                <button
-                  key={type}
-                  onClick={() => toggleType(type)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-150 ${
-                    isSelected
-                      ? `${config.bg} ${config.color} ring-1 ring-current`
-                      : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-primary)]'
-                  }`}
-                >
-                  <span>{config.icon}</span>
-                  <span>{ACTIVITY_LABELS[type]}</span>
-                </button>
-              );
-            })}
+    <div className={`flex flex-col h-full bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] overflow-hidden ${compact ? 'text-sm' : ''}`}>
+      {!compact && (
+        <div className="p-4 border-b border-[var(--color-border)] space-y-3">
+          <h3 className="text-sm font-semibold text-[var(--color-text)]">Filters</h3>
+          
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap gap-2">
+              {allTypes.map(type => {
+                const config = ACTIVITY_ICONS[type];
+                const isSelected = selectedTypes.includes(type);
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => toggleType(type)}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-150 ${
+                      isSelected
+                        ? `${config.bg} ${config.color} ring-1 ring-current`
+                        : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-primary)]'
+                    }`}
+                  >
+                    <span>{config.icon}</span>
+                    <span>{ACTIVITY_LABELS[type]}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+              <select
+                value={selectedAgentId ?? ''}
+                onChange={e => setSelectedAgentId(e.target.value || null)}
+                className="px-3 py-1.5 rounded-lg text-xs bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+              >
+                <option value="">All Sessions</option>
+                {availableAgents.map(agent => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.name}
+                  </option>
+                ))}
+            </select>
+
+            <select
+              value={timeRange}
+              onChange={e => setTimeRange(e.target.value)}
+              className="px-3 py-1.5 rounded-lg text-xs bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+            >
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+            </select>
           </div>
-
-          <select
-            value={selectedAgentId ?? ''}
-            onChange={e => setSelectedAgentId(e.target.value ? parseInt(e.target.value) : null)}
-            className="px-3 py-1.5 rounded-lg text-xs bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
-          >
-            <option value="">All Agents</option>
-            {agents.map(agent => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={timeRange}
-            onChange={e => setTimeRange(e.target.value)}
-            className="px-3 py-1.5 rounded-lg text-xs bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
-          >
-            <option value="all">All Time</option>
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-          </select>
         </div>
-      </div>
+      )}
 
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-32">
             <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
               <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <title>Loading</title>
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
@@ -243,13 +239,14 @@ export function ActivityFeed({ refreshInterval = 15000 }: ActivityFeedProps) {
             <span className="text-sm">No activity logs found</span>
           </div>
         ) : (
-          logs.map(log => <ActivityItem key={log.id} log={log} />)
+          logs.map(log => <ActivityItem key={log.id} log={log} compact={compact} />)
         )}
       </div>
 
-      {hasMore && (
+      {!compact && hasMore && (
         <div className="p-3 border-t border-[var(--color-border)]">
           <button
+            type="button"
             onClick={handleLoadMore}
             disabled={isLoadingMore}
             className="w-full py-2 px-4 rounded-lg text-sm font-medium bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-primary)] hover:text-[var(--color-text)] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -257,6 +254,7 @@ export function ActivityFeed({ refreshInterval = 15000 }: ActivityFeedProps) {
             {isLoadingMore ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <title>Loading more</title>
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>

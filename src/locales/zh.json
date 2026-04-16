@@ -4,6 +4,7 @@
     "subtitle": "智能体管理面板"
   },
   "nav": {
+    "monitor": "监控",
     "workboard": "工作台",
     "models": "模型库",
     "agents": "智能体",
@@ -101,6 +102,7 @@
   "status": {
     "running": "运行中",
     "idle": "空闲",
+    "idleHint": "空闲表示会话已存在但当前没有正在执行的 todo，不代表已死亡。",
     "error": "错误",
     "stopped": "已停止",
     "thinking": "思考中",
@@ -172,7 +174,22 @@
   },
   "activity": {
     "title": "活动日志",
-    "noActivity": "暂无活动"
+    "noActivity": "暂无活动",
+    "allSessions": "全部会话",
+    "allTime": "全部时间",
+    "today": "今天",
+    "thisWeek": "本周",
+    "thisMonth": "本月",
+    "filters": "筛选",
+    "loadMore": "加载更多",
+    "loading": "加载中...",
+    "started": "已启动",
+    "stopped": "已停止",
+    "configChanged": "配置变更",
+    "taskAssigned": "任务分配",
+    "taskCompleted": "任务完成",
+    "showDetails": "展开详情",
+    "hideDetails": "收起详情"
   },
   "settings": {
     "title": "设置",

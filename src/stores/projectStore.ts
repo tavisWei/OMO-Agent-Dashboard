@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 
 interface Project {
-  id: number;
+  id: string;
   name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
+  directory: string;
+  projectId: string;
+  activeSessionCount: number;
+  totalSessionCount: number;
 }
 
 interface ProjectState {
@@ -16,7 +17,7 @@ interface ProjectState {
 
   fetchProjects: () => Promise<void>;
   addProject: (name: string, description?: string) => Promise<void>;
-  deleteProject: (id: number) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
   selectProject: (id: string | null) => void;
 }
 
@@ -34,42 +35,18 @@ export const useProjectStore = create<ProjectState>((set) => ({
       const res = await fetch(`${API_BASE}/projects`);
       if (!res.ok) throw new Error('Failed to fetch projects');
       const data = await res.json();
-      set({ projects: data, isLoading: false });
+      set({ projects: Array.isArray(data) ? data : data.projects ?? [], isLoading: false });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : 'Unknown error', isLoading: false });
     }
   },
 
-  addProject: async (name: string, description?: string) => {
-    try {
-      set({ isLoading: true, error: null });
-      const res = await fetch(`${API_BASE}/projects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description }),
-      });
-      if (!res.ok) throw new Error('Failed to add project');
-      const newProject = await res.json();
-      set((state) => ({ projects: [...state.projects, newProject], isLoading: false }));
-    } catch (err) {
-      set({ error: err instanceof Error ? err.message : 'Unknown error', isLoading: false });
-      throw err;
-    }
+  addProject: async () => {
+    set({ error: 'Projects are derived from OpenCode sessions and cannot be created here' });
   },
 
-  deleteProject: async (id: number) => {
-    try {
-      set({ isLoading: true, error: null });
-      const res = await fetch(`${API_BASE}/projects/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete project');
-      set((state) => ({
-        projects: state.projects.filter((p) => p.id !== id),
-        isLoading: false,
-      }));
-    } catch (err) {
-      set({ error: err instanceof Error ? err.message : 'Unknown error', isLoading: false });
-      throw err;
-    }
+  deleteProject: async () => {
+    set({ error: 'Projects are derived from OpenCode sessions and cannot be deleted here' });
   },
 
   selectProject: (id) => set({ selectedProjectId: id }),

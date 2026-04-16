@@ -4,6 +4,7 @@
     "subtitle": "Agent Dashboard"
   },
   "nav": {
+    "monitor": "Monitor",
     "workboard": "Work",
     "models": "Models",
     "agents": "Agents",
@@ -101,6 +102,7 @@
   "status": {
     "running": "Running",
     "idle": "Idle",
+    "idleHint": "Idle means the session still exists but currently has no in-progress todo. It is not necessarily dead.",
     "error": "Error",
     "stopped": "Stopped",
     "thinking": "Thinking",
@@ -172,7 +174,12 @@
   },
   "activity": {
     "title": "Activity Logs",
-    "noActivity": "No activity"
+    "noActivity": "No activity",
+    "allSessions": "All Sessions",
+    "allTime": "All Time",
+    "today": "Today",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month"
   },
   "settings": {
     "title": "Settings",
