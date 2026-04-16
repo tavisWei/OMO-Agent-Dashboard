@@ -1,96 +1,95 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from './components/AppLayout';
-import { CostOverview } from './components/CostOverview';
 import { SettingsPage } from './components/SettingsPage';
 import { ActivityFeed } from './components/ActivityFeed';
-import { AgentGrid } from './components/AgentGrid';
-import { KanbanBoard } from './components/KanbanBoard';
 import { AgentDetail } from './components/AgentDetail';
 import { TaskDetail } from './components/TaskDetail';
 import { ModelLibrary } from './components/ModelLibrary';
 import { ProjectDetail } from './components/ProjectDetail';
-import AgentConfigPanel from './components/AgentConfigPanel';
+import { AgentMonitorView } from './components/AgentMonitorView';
 import { useThemeStore } from './stores/themeStore';
-import { useAgentStore } from './stores/agentStore';
-import { useProjectStore } from './stores/projectStore';
 import { useAgentRuntime } from './hooks/useAgentRuntime';
-import { AgentRuntimePanel } from './components/AgentRuntimeCard';
-import type { AgentWithUsage } from './types';
+import { useDashboardStore } from './stores/dashboardStore';
+import { ROUTES } from './routes';
 
 function Agents() {
+  const { t } = useTranslation();
   useAgentRuntime();
-  const { agents, isLoading, error, fetchAgents } = useAgentStore();
-  const { projects, fetchProjects } = useProjectStore();
-  const [configPanelOpen, setConfigPanelOpen] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState<AgentWithUsage | null>(null);
+  const { config, configLoading, configError, fetchConfig } = useDashboardStore();
 
   useEffect(() => {
-    fetchAgents();
-    fetchProjects();
-  }, [fetchAgents, fetchProjects]);
-
-  const handleEditAgent = (agent: AgentWithUsage) => {
-    setSelectedAgent(agent);
-    setConfigPanelOpen(true);
-  };
-
-  const handleCloseConfigPanel = () => {
-    setConfigPanelOpen(false);
-    setSelectedAgent(null);
-  };
-
-  const runningAgents = agents.filter((a) => a.status === 'running').length;
-
-  const filteredAgents: AgentWithUsage[] = agents.map((a) => ({
-    ...a,
-    config_path: null,
-    created_at: '',
-    updated_at: '',
-    totalTokens: 0,
-    totalCost: 0,
-  }));
+    fetchConfig();
+  }, [fetchConfig]);
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[var(--color-text)]">Agents</h1>
-      <div className="grid grid-cols-3 gap-4">
-        <div className="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-          <p className="text-sm text-[var(--color-text-secondary)]">Total Projects</p>
-          <p className="text-2xl font-bold text-[var(--color-text)]">{projects.length}</p>
-        </div>
-        <div className="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-          <p className="text-sm text-[var(--color-text-secondary)]">Active Agents</p>
-          <p className="text-2xl font-bold text-[var(--color-text)]">{runningAgents}</p>
-        </div>
-        <div className="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
-          <p className="text-sm text-[var(--color-text-secondary)]">Total Agents</p>
-          <p className="text-2xl font-bold text-[var(--color-text)]">{agents.length}</p>
-        </div>
-      </div>
+      <h1 className="text-2xl font-bold text-[var(--color-text)]">{t('agents.title')}</h1>
 
-      {isLoading ? (
-        <p className="text-[var(--color-text-secondary)]">Loading...</p>
-      ) : error ? (
-        <p className="text-red-500">Error: {error}</p>
+      {configLoading ? (
+        <p className="text-[var(--color-text-secondary)] text-sm">{t('common.loading')}</p>
+      ) : configError ? (
+        <p className="text-red-500 text-sm">{configError}</p>
+      ) : config ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5 space-y-3">
+              <div>
+                <h2 className="text-base font-semibold text-[var(--color-text)]">oh-my-openagent 智能体</h2>
+                <p className="text-xs text-[var(--color-text-secondary)]">运行时使用的真实智能体定义。</p>
+              </div>
+              {config.agents.map((entry) => (
+                <div key={entry.key} className="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] px-3 py-2">
+                  <div className="min-w-0">
+                    <div className="font-medium text-[var(--color-text)] text-sm truncate">{entry.key}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] truncate">{entry.model}{entry.variant ? ` · ${entry.variant}` : ''}</div>
+                  </div>
+                  <a href={ROUTES.MODELS} className="text-xs text-[var(--color-accent)] hover:underline shrink-0 ml-2">{t('models.editModel')}</a>
+                </div>
+              ))}
+            </section>
+
+            <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5 space-y-3">
+              <div>
+                <h2 className="text-base font-semibold text-[var(--color-text)]">分类预设</h2>
+                <p className="text-xs text-[var(--color-text-secondary)]">决定每个智能体分类使用哪个模型。</p>
+              </div>
+              {config.categories.map((entry) => (
+                <div key={entry.key} className="flex items-center justify-between rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] px-3 py-2">
+                  <div className="min-w-0">
+                    <div className="font-medium text-[var(--color-text)] text-sm truncate">{entry.key}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)] truncate">{entry.model}{entry.variant ? ` · ${entry.variant}` : ''}</div>
+                  </div>
+                  <a href={ROUTES.MODELS} className="text-xs text-[var(--color-accent)] hover:underline shrink-0 ml-2">{t('models.editModel')}</a>
+                </div>
+              ))}
+            </section>
+          </div>
+
+          <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5 space-y-3">
+            <div>
+              <h2 className="text-base font-semibold text-[var(--color-text)]">opencode Providers</h2>
+              <p className="text-xs text-[var(--color-text-secondary)]">opencode.json 中配置的模型供应商。</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {config.providers.map((provider) => {
+                const modelCount = (config.providerModels?.[provider] ?? []).length;
+                return (
+                  <div key={provider} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] px-3 py-2">
+                    <div className="font-medium text-[var(--color-text)] text-sm capitalize">{provider}</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{modelCount} 个模型</div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </div>
       ) : (
-        <AgentGrid agents={filteredAgents} onEditAgent={handleEditAgent} onRefresh={fetchAgents} />
+        <p className="text-[var(--color-text-secondary)] text-sm">暂无配置数据。</p>
       )}
-
-      <AgentRuntimePanel />
-
-      <AgentConfigPanel
-        agent={selectedAgent}
-        isOpen={configPanelOpen}
-        onClose={handleCloseConfigPanel}
-        onSave={fetchAgents}
-      />
     </div>
   );
-}
-
-function Analytics() {
-  return <CostOverview />;
 }
 
 function Settings() {
@@ -125,15 +124,16 @@ function App() {
       >
         <Routes>
           <Route element={<AppLayout />}>
-            <Route path="/" element={<KanbanBoard />} />
-            <Route path="/tasks/:id" element={<TaskDetail />} />
-            <Route path="/models" element={<ModelLibrary />} />
-            <Route path="/agents" element={<Agents />} />
-            <Route path="/project/:id" element={<ProjectDetail />} />
-            <Route path="/agent/:id" element={<AgentDetail />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/activity" element={<Activity />} />
+            <Route path={ROUTES.HOME} element={<AgentMonitorView />} />
+            <Route path={ROUTES.TASK(':id')} element={<TaskDetail />} />
+            <Route path={ROUTES.MODELS} element={<ModelLibrary />} />
+            <Route path={ROUTES.AGENTS} element={<Agents />} />
+            <Route path={ROUTES.PROJECT(':id')} element={<ProjectDetail />} />
+            <Route path={ROUTES.AGENT(':id')} element={<AgentDetail />} />
+            <Route path={ROUTES.ANALYTICS} element={<Navigate to={ROUTES.HOME} replace />} />
+            <Route path={ROUTES.SETTINGS} element={<Settings />} />
+            <Route path={ROUTES.ACTIVITY} element={<Activity />} />
+            <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
           </Route>
         </Routes>
       </div>

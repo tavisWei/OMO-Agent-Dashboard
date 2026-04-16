@@ -34,7 +34,7 @@ export function AgentDetail() {
     fetchAgents();
     fetchTasks();
     fetchCosts();
-    setFilters({ agentId, types: [], timeRange: 'all' });
+    setFilters({ agentId: agentId === null ? null : String(agentId), types: [], project: null, timeRange: 'all' });
     fetchLogs(true);
   }, [agentId, fetchAgents, fetchTasks, fetchCosts, setFilters, fetchLogs]);
 
@@ -50,7 +50,7 @@ export function AgentDetail() {
 
   const agentLogs = useMemo(() => {
     if (agentId === null) return [];
-    return logs.filter((log) => log.agent_id === agentId).slice(0, 8);
+    return logs.filter((log) => log.agent_id === String(agentId)).slice(0, 8);
   }, [logs, agentId]);
 
   const agentCost = useMemo(() => {
@@ -80,6 +80,7 @@ export function AgentDetail() {
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <h2 className="text-xl font-bold text-[var(--color-text)]">{t('agents.notFound')}</h2>
         <button
+          type="button"
           onClick={() => navigate('/agents')}
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors"
         >
@@ -93,10 +94,11 @@ export function AgentDetail() {
     <div className="space-y-6 pb-10">
       <div className="flex items-center gap-4">
         <button
+          type="button"
           onClick={() => navigate(-1)}
           className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </button>
@@ -116,6 +118,7 @@ export function AgentDetail() {
           <p className="text-sm text-[var(--color-text-secondary)]">{t('agents.detailSubtitle')}</p>
         </div>
         <button
+          type="button"
           onClick={() => setConfigPanelOpen(true)}
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors"
         >
@@ -151,6 +154,7 @@ export function AgentDetail() {
                 {agentTasks.map((task) => (
                   <button
                     key={task.id}
+                    type="button"
                     onClick={() => navigate(`/tasks/${task.id}`)}
                     className="w-full text-left p-4 rounded-lg bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-bg-primary)] border border-[var(--color-border)] transition-colors"
                   >
