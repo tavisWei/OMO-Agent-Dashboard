@@ -815,7 +815,7 @@ export function getRecentActivityLogs(limit: number = 50): ActivityLog[] {
   return result[0].values.map((row: any[]) => rowToObj(result[0].columns, row));
 }
 
-function getDatabaseSync(): Database {
+export function getDatabaseSync(): Database {
   if (!db) {
     throw new Error('Database not initialized. Call getDatabase() first.');
   }
