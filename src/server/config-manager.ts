@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { applyEdits, modify, parse } from 'jsonc-parser';
@@ -378,4 +378,104 @@ export function deleteProvider(key: string): ConfigManagerResult<boolean> {
   delete providerObj[key];
   root.provider = providerObj;
   return writeJsonFile(paths.opencodePath, root);
+}
+
+// --- Config Version Management ---
+
+export interface ConfigVersion {
+  name: string;
+  filename: string;
+  createdAt: string;
+}
+
+function getVersionsDir(): string {
+  return path.join(getBaseConfigDir(), 'openagent-versions');
+}
+
+function sanitizeFilename(name: string): string {
+  return name.replace(/[^a-zA-Z0-9\u4e00-\u9fff_-]/g, '_').slice(0, 80);
+}
+
+export function saveConfigVersion(versionName: string): ConfigManagerResult<ConfigVersion> {
+  const paths = getConfigPaths();
+  const raw = readRawFile(paths.openAgentPath);
+  if (raw.error || raw.data === null) {
+    return { data: null as never, error: raw.error ?? { code: 'CONFIG_NOT_FOUND', message: 'oh-my-openagent.json not found', path: paths.openAgentPath } };
+  }
+
+  const versionsDir = getVersionsDir();
+  if (!existsSync(versionsDir)) {
+    mkdirSync(versionsDir, { recursive: true });
+  }
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const safeName = sanitizeFilename(versionName);
+  const filename = `${safeName}_${timestamp}.json`;
+  const filePath = path.join(versionsDir, filename);
+
+  try {
+    const meta = { _versionName: versionName, _createdAt: new Date().toISOString() };
+    const content = JSON.parse(raw.data) as JsonObject;
+    content._versionMeta = meta;
+    writeFileSync(filePath, `${JSON.stringify(content, null, 2)}\n`, 'utf-8');
+    return { data: { name: versionName, filename, createdAt: meta._createdAt }, error: null };
+  } catch (error) {
+    return { data: null as never, error: { code: 'CONFIG_WRITE_FAILED', message: error instanceof Error ? error.message : String(error), path: filePath } };
+  }
+}
+
+export function listConfigVersions(): ConfigManagerResult<ConfigVersion[]> {
+  const versionsDir = getVersionsDir();
+  if (!existsSync(versionsDir)) {
+    return { data: [], error: null };
+  }
+
+  try {
+    const files = readdirSync(versionsDir).filter((f) => f.endsWith('.json')).sort().reverse();
+    const versions: ConfigVersion[] = files.map((filename) => {
+      try {
+        const content = JSON.parse(readFileSync(path.join(versionsDir, filename), 'utf-8')) as JsonObject;
+        const meta = (content._versionMeta ?? {}) as Record<string, string>;
+        return { name: meta._versionName ?? filename.replace('.json', ''), filename, createdAt: meta._createdAt ?? '' };
+      } catch {
+        return { name: filename.replace('.json', ''), filename, createdAt: '' };
+      }
+    });
+    return { data: versions, error: null };
+  } catch (error) {
+    return { data: [], error: { code: 'CONFIG_PARSE_FAILED', message: error instanceof Error ? error.message : String(error), path: versionsDir } };
+  }
+}
+
+export function loadConfigVersion(filename: string): ConfigManagerResult<boolean> {
+  const versionsDir = getVersionsDir();
+  const filePath = path.join(versionsDir, filename);
+  if (!existsSync(filePath)) {
+    return { data: false, error: { code: 'CONFIG_NOT_FOUND', message: `Version file not found: ${filename}`, path: filePath } };
+  }
+
+  try {
+    const content = JSON.parse(readFileSync(filePath, 'utf-8')) as JsonObject;
+    delete content._versionMeta;
+    const paths = getConfigPaths();
+    writeFileSync(paths.openAgentPath, `${JSON.stringify(content, null, 2)}\n`, 'utf-8');
+    return { data: true, error: null };
+  } catch (error) {
+    return { data: false, error: { code: 'CONFIG_WRITE_FAILED', message: error instanceof Error ? error.message : String(error), path: filePath } };
+  }
+}
+
+export function deleteConfigVersion(filename: string): ConfigManagerResult<boolean> {
+  const versionsDir = getVersionsDir();
+  const filePath = path.join(versionsDir, filename);
+  if (!existsSync(filePath)) {
+    return { data: false, error: { code: 'CONFIG_NOT_FOUND', message: `Version file not found: ${filename}`, path: filePath } };
+  }
+
+  try {
+    unlinkSync(filePath);
+    return { data: true, error: null };
+  } catch (error) {
+    return { data: false, error: { code: 'CONFIG_WRITE_FAILED', message: error instanceof Error ? error.message : String(error), path: filePath } };
+  }
 }

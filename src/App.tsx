@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { BrowserRouter, Link, Navigate, Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout } from './components/AppLayout';
@@ -17,13 +17,130 @@ function Agents() {
   const { t } = useTranslation();
   const { config, configLoading, configError, fetchConfig } = useDashboardStore();
 
+  const [versions, setVersions] = useState<Array<{ name: string; filename: string; createdAt: string }>>([]);
+  const [versionName, setVersionName] = useState('');
+  const [selectedVersion, setSelectedVersion] = useState<string>('');
+  const [versionSaving, setVersionSaving] = useState(false);
+  const [versionLoading, setVersionLoading] = useState<string | null>(null);
+  const [versionMsg, setVersionMsg] = useState<string | null>(null);
+
+  const fetchVersions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/config/versions');
+      if (res.ok) setVersions(await res.json());
+    } catch { /* noop */ }
+  }, []);
+
   useEffect(() => {
     fetchConfig();
-  }, [fetchConfig]);
+    fetchVersions();
+  }, [fetchConfig, fetchVersions]);
+
+  const handleSaveVersion = async () => {
+    if (!versionName.trim()) return;
+    setVersionSaving(true);
+    setVersionMsg(null);
+    try {
+      const res = await fetch('/api/config/versions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: versionName.trim() }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Failed');
+      setVersionName('');
+      setVersionMsg(t('common.success'));
+      await fetchVersions();
+      setSelectedVersion('');
+    } catch (e) {
+      setVersionMsg(e instanceof Error ? e.message : 'Error');
+    } finally {
+      setVersionSaving(false);
+    }
+  };
+
+  const handleLoadVersion = async (filename: string) => {
+    setVersionLoading(filename);
+    setVersionMsg(null);
+    try {
+      const res = await fetch(`/api/config/versions/${encodeURIComponent(filename)}/load`, { method: 'POST' });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Failed');
+      setVersionMsg(t('common.success'));
+      await fetchConfig();
+    } catch (e) {
+      setVersionMsg(e instanceof Error ? e.message : 'Error');
+    } finally {
+      setVersionLoading(null);
+    }
+  };
+
+  const handleDeleteVersion = async (filename: string) => {
+    try {
+      await fetch(`/api/config/versions/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+      await fetchVersions();
+      setSelectedVersion('');
+    } catch { /* noop */ }
+  };
+
+  const btnPrimary = 'px-3 py-1.5 rounded bg-[var(--color-accent)] text-white text-sm disabled:opacity-50';
+  const btnSecondary = 'px-3 py-1.5 rounded border border-[var(--color-border)] text-sm text-[var(--color-text-secondary)] disabled:opacity-50';
+  const inputCls = 'px-2 py-1.5 rounded border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] text-sm text-[var(--color-text)]';
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-[var(--color-text)]">{t('agents.title')}</h1>
+
+      <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5 space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-[var(--color-text)]">配置版本管理</h2>
+          <p className="text-xs text-[var(--color-text-secondary)]">保存当前 oh-my-openagent 配置为版本快照，随时切换回任意版本。</p>
+        </div>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="space-y-1">
+            <label htmlFor="version-name" className="text-xs text-[var(--color-text-secondary)]">版本名称</label>
+            <input id="version-name" value={versionName} onChange={(e) => setVersionName(e.target.value)} placeholder="低成本方案"
+              className={inputCls} />
+          </div>
+          <button type="button" onClick={handleSaveVersion} disabled={versionSaving || !versionName.trim()} className={btnPrimary}>
+            {versionSaving ? t('common.saving') : '保存当前版本'}
+          </button>
+          {versions.length > 0 && (
+            <>
+              <div className="h-8 w-px bg-[var(--color-border)] mx-1" />
+              <div className="space-y-1 min-w-[240px]">
+                <label htmlFor="saved-version" className="text-xs text-[var(--color-text-secondary)]">已保存版本</label>
+                <select
+                  id="saved-version"
+                  value={selectedVersion}
+                  onChange={(e) => setSelectedVersion(e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="">选择版本...</option>
+                  {versions.map((v) => (
+                    <option key={v.filename} value={v.filename}>{v.name} · {v.createdAt}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={() => selectedVersion && handleLoadVersion(selectedVersion)}
+                disabled={!selectedVersion || versionLoading === selectedVersion}
+                className={btnPrimary}
+              >
+                {versionLoading === selectedVersion ? '...' : '切换'}
+              </button>
+              <button
+                type="button"
+                onClick={() => selectedVersion && handleDeleteVersion(selectedVersion)}
+                disabled={!selectedVersion}
+                className={btnSecondary}
+              >
+                删除
+              </button>
+            </>
+          )}
+        </div>
+        {versionMsg && <div className="text-xs text-[var(--color-text-secondary)]">{versionMsg}</div>}
+      </section>
 
       {configLoading ? (
         <p className="text-[var(--color-text-secondary)] text-sm">{t('common.loading')}</p>

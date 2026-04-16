@@ -11,6 +11,10 @@ import {
   addProvider,
   updateProvider,
   deleteProvider,
+  saveConfigVersion,
+  listConfigVersions,
+  loadConfigVersion,
+  deleteConfigVersion,
   type RawConfigTarget,
 } from '../config-manager.js';
 
@@ -153,6 +157,42 @@ router.put('/providers/:key', (req, res) => {
 
 router.delete('/providers/:key', (req, res) => {
   const result = deleteProvider(req.params.key);
+  if (result.error) {
+    return res.status(500).json({ error: result.error.message });
+  }
+  return res.json({ success: true });
+});
+
+router.get('/versions', (_req, res) => {
+  const result = listConfigVersions();
+  if (result.error) {
+    return res.status(500).json({ error: result.error.message });
+  }
+  return res.json(result.data);
+});
+
+router.post('/versions', (req, res) => {
+  const { name } = req.body ?? {};
+  if (typeof name !== 'string' || name.trim().length === 0) {
+    return res.status(400).json({ error: 'version name is required' });
+  }
+  const result = saveConfigVersion(name.trim());
+  if (result.error) {
+    return res.status(500).json({ error: result.error.message });
+  }
+  return res.json(result.data);
+});
+
+router.post('/versions/:filename/load', (req, res) => {
+  const result = loadConfigVersion(req.params.filename);
+  if (result.error) {
+    return res.status(500).json({ error: result.error.message });
+  }
+  return res.json({ success: true });
+});
+
+router.delete('/versions/:filename', (req, res) => {
+  const result = deleteConfigVersion(req.params.filename);
   if (result.error) {
     return res.status(500).json({ error: result.error.message });
   }
