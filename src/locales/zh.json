@@ -101,9 +101,9 @@
   },
   "status": {
     "running": "运行中",
-    "idle": "空闲",
+    "queued": "已提交",
     "completed": "已完成",
-    "idleHint": "空闲表示会话已存在但当前没有正在执行的 todo，不代表已死亡。",
+    "queuedHint": "已提交表示会话当前不在思考中、运行中或已完成，处于等待下一步动作的状态。",
     "error": "错误",
     "stopped": "已停止",
     "thinking": "思考中",

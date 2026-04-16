@@ -101,9 +101,9 @@
   },
   "status": {
     "running": "Running",
-    "idle": "Idle",
+    "queued": "Queued",
     "completed": "Completed",
-    "idleHint": "Idle means the session still exists but currently has no in-progress todo. It is not necessarily dead.",
+    "queuedHint": "Queued means the session is not currently thinking, running, or completed, and is waiting for the next action.",
     "error": "Error",
     "stopped": "Stopped",
     "thinking": "Thinking",

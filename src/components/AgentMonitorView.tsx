@@ -7,7 +7,7 @@ import { ActivityFeed } from './ActivityFeed';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { useProjectStore } from '../stores/projectStore';
 
-const FILTERABLE_STATUSES = ['running', 'thinking', 'idle', 'completed', 'error'] as const;
+const FILTERABLE_STATUSES = ['queued', 'thinking', 'running', 'completed', 'error'] as const;
 const PAGE_SIZE = 20;
 
 export function AgentMonitorView() {
@@ -38,13 +38,14 @@ export function AgentMonitorView() {
 
   const activeAgents = filteredSessions.map((session) => ({
     agentId: session.id,
-    status: session.status === 'active' ? 'thinking' : session.status,
+    status: session.status,
     lastUpdate: session.updatedAt,
     sessionName: session.title,
   }));
   const totalSessionsCount = filteredSessions.length;
+  const queuedCount = filteredSessions.filter((session) => session.status === 'queued').length;
   const runningCount = filteredSessions.filter((session) => session.status === 'running').length;
-  const thinkingCount = filteredSessions.filter((session) => session.status === 'thinking' || session.status === 'active').length;
+  const thinkingCount = filteredSessions.filter((session) => session.status === 'thinking').length;
   const completedCount = filteredSessions.filter((session) => session.status === 'completed').length;
   const errorCount = filteredSessions.filter((session) => session.status === 'error').length;
   const [monitorPage, setMonitorPage] = useState(1);
@@ -108,10 +109,14 @@ export function AgentMonitorView() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-6 gap-4">
         <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex flex-col">
           <span className="text-xs text-[var(--color-text-secondary)] mb-1">Active Sessions</span>
           <span className="text-3xl font-bold text-[var(--color-text)]">{effectiveProjectId || statusFilter.length > 0 ? totalSessionsCount : (overview?.totalSessions ?? totalSessionsCount)}</span>
+        </div>
+        <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex flex-col">
+          <span className="text-xs text-[var(--color-text-secondary)] mb-1">{t('status.queued')}</span>
+          <span className="text-3xl font-bold text-slate-400">{queuedCount}</span>
         </div>
         <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex flex-col">
           <span className="text-xs text-[var(--color-text-secondary)] mb-1">{t('status.running')}</span>
@@ -131,10 +136,6 @@ export function AgentMonitorView() {
             {errorCount}
           </span>
         </div>
-      </div>
-
-      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
-        <span className="font-medium text-[var(--color-text)]">{t('status.idle')}:</span> {t('status.idleHint')}
       </div>
 
       <div className="grid grid-cols-3 gap-6 flex-1 min-h-0">
