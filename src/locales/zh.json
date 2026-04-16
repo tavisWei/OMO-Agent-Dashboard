@@ -102,6 +102,7 @@
   "status": {
     "running": "运行中",
     "idle": "空闲",
+    "completed": "已完成",
     "idleHint": "空闲表示会话已存在但当前没有正在执行的 todo，不代表已死亡。",
     "error": "错误",
     "stopped": "已停止",

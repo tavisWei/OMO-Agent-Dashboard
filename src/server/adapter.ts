@@ -17,26 +17,31 @@ export function inferSessionStatus(
   todos: OpenCodeTodoRow[],
   messages: OpenCodeMessageRow[],
 ): AgentStatus | 'active' {
+  const lastMessage = messages[0];
+  const lastMessageTime = lastMessage?.parsed?.time?.created ?? lastMessage?.time_created ?? null;
+  const isRecentlyActive = (
+    (typeof lastMessageTime === 'number' && Date.now() - lastMessageTime <= ACTIVE_WINDOW_MS) ||
+    Date.now() - session.time_updated <= ACTIVE_WINDOW_MS
+  );
+
   if (todos.some((todo) => todo.status === 'failed' || todo.status === 'cancelled')) {
     return 'error';
   }
 
   if (todos.some((todo) => todo.status === 'in_progress')) {
-    return 'running';
+    return isRecentlyActive ? 'running' : 'idle';
   }
 
-  if (todos.length > 0 && todos.every((todo) => todo.status === 'completed')) {
-    return 'idle';
-  }
-
-  const lastMessage = messages[0];
-  const lastMessageTime = lastMessage?.parsed?.time?.created ?? lastMessage?.time_created ?? null;
   if (typeof lastMessageTime === 'number' && Date.now() - lastMessageTime <= ACTIVE_WINDOW_MS) {
     return 'active';
   }
 
   if (Date.now() - session.time_updated <= ACTIVE_WINDOW_MS) {
     return 'thinking';
+  }
+
+  if (todos.length > 0 && todos.every((todo) => todo.status === 'completed')) {
+    return 'completed';
   }
 
   return 'idle';
@@ -156,6 +161,7 @@ export function toOverview(sessions: DashboardSession[], projectGroups: Dashboar
     thinkingSessions: sessions.filter((session) => session.status === 'thinking' || session.status === 'active').length,
     failedSessions: sessions.filter((session) => session.status === 'error').length,
     idleSessions: sessions.filter((session) => session.status === 'idle').length,
+    completedSessions: sessions.filter((session) => session.status === 'completed').length,
     activeProjects: projectGroups.filter((project) => project.activeSessionCount > 0).length,
   };
 }

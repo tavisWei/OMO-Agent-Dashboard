@@ -102,6 +102,7 @@
   "status": {
     "running": "Running",
     "idle": "Idle",
+    "completed": "Completed",
     "idleHint": "Idle means the session still exists but currently has no in-progress todo. It is not necessarily dead.",
     "error": "Error",
     "stopped": "Stopped",

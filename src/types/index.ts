@@ -1,5 +1,5 @@
 // Agent data types matching the database schema
-export type AgentStatus = 'idle' | 'running' | 'error' | 'stopped' | 'thinking' | 'offline';
+export type AgentStatus = 'idle' | 'running' | 'error' | 'stopped' | 'thinking' | 'offline' | 'completed';
 
 export type AgentSource = 'omo_config' | 'ui_created';
 

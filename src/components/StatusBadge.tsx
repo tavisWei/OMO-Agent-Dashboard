@@ -15,6 +15,8 @@ export function StatusBadge({ status, showLabel = true }: StatusBadgeProps) {
         return { color: 'bg-emerald-500', label: t('status.running') };
       case 'idle':
         return { color: 'bg-slate-400', label: t('status.idle') };
+      case 'completed':
+        return { color: 'bg-blue-500', label: t('status.completed') };
       case 'error':
         return { color: 'bg-red-500', label: t('status.error') };
       case 'stopped':
