@@ -1,45 +1,30 @@
 import { Router } from 'express';
-import {
-  createProject,
-  getAllProjects,
-  getProject,
-  updateProject,
-  deleteProject
-} from '../../db/index.js';
+import { getDashboardSnapshot } from '../opencode-reader.js';
 
 const router = Router();
 
 router.get('/', (_req, res) => {
   try {
-    const projects = getAllProjects();
-    res.json(projects);
+    const snapshot = getDashboardSnapshot({ limit: 200 });
+    if (snapshot.error) {
+      return res.json({ projects: [], error: snapshot.error.message });
+    }
+    res.json(snapshot.projects);
   } catch (error) {
     console.error('Error getting projects:', error);
     res.status(500).json({ error: 'Failed to get projects' });
   }
 });
 
-router.post('/', (req, res) => {
-  try {
-    const { name, description = '' } = req.body;
-    if (!name) {
-      return res.status(400).json({ error: 'Name is required' });
-    }
-    const project = createProject(name, description);
-    res.status(201).json(project);
-  } catch (error) {
-    console.error('Error creating project:', error);
-    res.status(500).json({ error: 'Failed to create project' });
-  }
-});
+router.post('/', (_req, res) => res.status(405).json({ error: 'Projects are derived from OpenCode sessions and cannot be created here' }));
 
 router.get('/:id', (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid ID' });
+    const snapshot = getDashboardSnapshot({ limit: 200 });
+    if (snapshot.error) {
+      return res.json({ project: null, error: snapshot.error.message });
     }
-    const project = getProject(id);
+    const project = snapshot.projects.find((entry) => entry.id === req.params.id);
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
@@ -50,43 +35,8 @@ router.get('/:id', (req, res) => {
   }
 });
 
-router.put('/:id', (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid ID' });
-    }
-    const { name, description } = req.body;
-    if (!name) {
-      return res.status(400).json({ error: 'Name is required' });
-    }
-    const success = updateProject(id, name, description ?? '');
-    if (!success) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-    const updated = getProject(id);
-    res.json(updated);
-  } catch (error) {
-    console.error('Error updating project:', error);
-    res.status(500).json({ error: 'Failed to update project' });
-  }
-});
+router.put('/:id', (_req, res) => res.status(405).json({ error: 'Projects are read-only derived data' }));
 
-router.delete('/:id', (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid ID' });
-    }
-    const success = deleteProject(id);
-    if (!success) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-    res.status(204).send();
-  } catch (error) {
-    console.error('Error deleting project:', error);
-    res.status(500).json({ error: 'Failed to delete project' });
-  }
-});
+router.delete('/:id', (_req, res) => res.status(405).json({ error: 'Projects are read-only derived data' }));
 
 export default router;

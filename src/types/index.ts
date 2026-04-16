@@ -280,7 +280,7 @@ export type ActivityType = 'started' | 'stopped' | 'error' | 'config_changed' | 
 
 export interface ActivityLog {
   id: number;
-  agent_id: number | null;
+  agent_id: string | null;
   agent_name: string | null;
   action: ActivityType;
   details: string;

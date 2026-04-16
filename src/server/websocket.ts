@@ -1,6 +1,8 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import type { IncomingMessage } from 'http';
 import { agentStatusMonitor } from './agentStatus.js';
+import { getDashboardSnapshot } from './opencode-reader.js';
+import { onConfigChange, onDbChange, startWatching } from './watcher.js';
 
 const PORT = 3001;
 const HEARTBEAT_INTERVAL = 30000;
@@ -8,8 +10,9 @@ const HEARTBEAT_INTERVAL = 30000;
 let wss: WebSocketServer | null = null;
 let heartbeatTimer: NodeJS.Timeout | null = null;
 const clients = new Set<WebSocket>();
+let watchStarted = false;
 
-export type WSServerMessageType = 'agent_update' | 'agent_created' | 'agent_deleted' | 'task_update' | 'task_created' | 'task_updated' | 'task_deleted' | 'orchestration_update' | 'heartbeat' | 'config_change';
+export type WSServerMessageType = 'agent_update' | 'agent_created' | 'agent_deleted' | 'task_update' | 'task_created' | 'task_updated' | 'task_deleted' | 'orchestration_update' | 'heartbeat' | 'config_change' | 'session_update' | 'todo_update';
 export type WSMessageType = WSServerMessageType | 'welcome' | 'agent_status';
 
 export interface WSMessage {
@@ -30,6 +33,21 @@ export interface WelcomeMessage extends WSMessage {
 interface HeartbeatMessage extends WSMessage {
   type: 'heartbeat';
   payload: { pong: true };
+}
+
+function pushSnapshot(): void {
+  const snapshot = getDashboardSnapshot({ limit: 200 });
+  if (snapshot.error) {
+    broadcastAll(createWSMessage('session_update', { sessions: [], error: snapshot.error.message }));
+    return;
+  }
+
+  broadcastAll(createWSMessage('session_update', {
+    sessions: snapshot.sessions,
+    projects: snapshot.projects,
+    overview: snapshot.overview,
+    tree: snapshot.tree,
+  }));
 }
 
 export function initializeWebSocketServer(expressServer?: any): WebSocketServer {
@@ -65,6 +83,7 @@ export function initializeWebSocketServer(expressServer?: any): WebSocketServer 
     // Send current agent status to new client
     const currentStatus = agentStatusMonitor.getStatus();
     ws.send(JSON.stringify({ type: 'agent_status', data: currentStatus }));
+    ws.send(JSON.stringify(createWSMessage('session_update', getDashboardSnapshot({ limit: 200 }))));
 
     ws.on('message', (data: Buffer) => {
       try {
@@ -89,6 +108,19 @@ export function initializeWebSocketServer(expressServer?: any): WebSocketServer 
   });
 
   startHeartbeat();
+
+  if (!watchStarted) {
+    watchStarted = true;
+    startWatching();
+    onDbChange(() => {
+      agentStatusMonitor.syncFromOpenCode();
+      pushSnapshot();
+    });
+    onConfigChange(() => {
+      broadcastAll(createWSMessage('config_change', { changedAt: Date.now() }));
+    });
+  }
+
   return wss;
 }
 
@@ -158,7 +190,9 @@ export function isClientConnected(ws: WebSocket): boolean {
 
 export function closeWebSocketServer(): void {
   stopHeartbeat();
-  clients.forEach((c) => c.close());
+  clients.forEach((c) => {
+    c.close();
+  });
   clients.clear();
   if (wss) {
     wss.close();

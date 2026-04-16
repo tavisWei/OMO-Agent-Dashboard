@@ -3,13 +3,17 @@ import { getDatabase, createAgent, clearAgents } from '../db/index.js';
 import { getAgents, getConfigPath } from '../config/omo-reader.js';
 import projectsRouter from './routes/projects.js';
 import agentsRouter from './routes/agents.js';
+import sessionsRouter from './routes/sessions.js';
+import configRouter from './routes/config.js';
 import modelsRouter from './routes/models.js';
 import tasksRouter from './routes/tasks.js';
 import costRouter from './routes/cost.js';
 import activityLogsRouter from './routes/activity-logs.js';
+import cleanupRouter from './routes/cleanup.js';
 import tmuxRouter from './routes/tmux.js';
 import { initializeWebSocketServer } from './websocket.js';
 import { agentStatusMonitor } from './agentStatus.js';
+import { cleanupHistoricalData } from '../db/cleanup.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 const execAsync = promisify(exec);
@@ -33,10 +37,13 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 
 app.use('/api/projects', projectsRouter);
 app.use('/api/agents', agentsRouter);
+app.use('/api/sessions', sessionsRouter);
+app.use('/api/config', configRouter);
 app.use('/api/models', modelsRouter);
 app.use('/api/tasks', tasksRouter);
 app.use('/api/cost-records', costRouter);
 app.use('/api/activity-logs', activityLogsRouter);
+app.use('/api/cleanup', cleanupRouter);
 app.use('/api/tmux', tmuxRouter);
 
 app.use((_req: Request, res: Response) => {
@@ -80,8 +87,12 @@ async function start() {
   try {
     await getDatabase();
     console.log('Database initialized');
+
+    const cleanupSummary = cleanupHistoricalData();
+    console.log('Historical dashboard data cleanup completed', cleanupSummary);
     
     await syncOMOConfig();
+    agentStatusMonitor.syncFromOpenCode();
     
     const server = app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
@@ -128,6 +139,8 @@ function startTmuxPolling() {
         const status = session.status as 'idle' | 'running' | 'thinking' | 'error';
         agentStatusMonitor.updateStatus(session.name, status, session.name);
       });
+
+      agentStatusMonitor.syncFromOpenCode();
       
       if (sessions.length > 0) {
         console.log(`[tmux-polling] ${sessions.length} sessions, statuses updated`);

@@ -5,7 +5,8 @@ const API_BASE = '/api';
 
 interface ActivityFilters {
   types: ActivityType[];
-  agentId: number | null;
+  agentId: string | null;
+  project: string | null;
   timeRange: string;
 }
 
@@ -28,6 +29,7 @@ interface ActivityState {
 const defaultFilters: ActivityFilters = {
   types: [],
   agentId: null,
+  project: null,
   timeRange: 'all',
 };
 

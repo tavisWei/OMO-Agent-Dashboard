@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createActivityLog } from '../../db/index.js';
+import { getDashboardSnapshot } from '../opencode-reader.js';
 
 const router = Router();
 
@@ -8,7 +9,7 @@ export type ActivityType = 'started' | 'stopped' | 'error' | 'config_changed' | 
 
 interface ActivityLogWithAgent {
   id: number;
-  agent_id: number | null;
+  agent_id: string | null;
   agent_name: string | null;
   action: string;
   details: string;
@@ -18,6 +19,7 @@ interface ActivityLogWithAgent {
 interface GetActivityLogsQuery {
   type?: string;
   agentId?: string;
+  project?: string;
   limit?: string;
   offset?: string;
 }
@@ -25,20 +27,16 @@ interface GetActivityLogsQuery {
 // GET /api/activity-logs - Get activity logs with optional filtering
 router.get('/', (req, res) => {
   try {
-    const { type, agentId, limit = '50', offset = '0' } = req.query as GetActivityLogsQuery;
+    const { type, agentId, project, limit = '50', offset = '0' } = req.query as GetActivityLogsQuery;
     const limitNum = Math.min(parseInt(limit, 10) || 50, 100);
     const offsetNum = parseInt(offset, 10) || 0;
 
     let logs: ActivityLogWithAgent[];
 
     if (agentId) {
-      const agentIdNum = parseInt(agentId, 10);
-      if (isNaN(agentIdNum)) {
-        return res.status(400).json({ error: 'Invalid agentId' });
-      }
-      logs = getActivityLogsByAgentWithName(agentIdNum, limitNum + 1, offsetNum);
+      logs = getActivityLogsBySession(agentId, limitNum + 1, offsetNum);
     } else {
-      logs = getRecentActivityLogsWithName(limitNum + 1, offsetNum);
+      logs = getRecentActivityLogsWithName(limitNum + 1, offsetNum, project);
     }
 
     // Filter by type if specified
@@ -88,50 +86,56 @@ router.post('/', (req, res) => {
 });
 
 // Helper function to get activity logs with agent name
-function getActivityLogsByAgentWithName(agentId: number, limit: number, offset: number): ActivityLogWithAgent[] {
-  const { getDatabaseSync } = require('../../db/index.js');
-  const database = getDatabaseSync();
-  const result = database.exec(
-    `SELECT al.id, al.agent_id, COALESCE(al.agent_name, a.name) as agent_name, al.action, al.details, al.created_at
-     FROM activity_logs al
-     LEFT JOIN agents a ON al.agent_id = a.id
-     WHERE al.agent_id = ?
-     ORDER BY al.created_at DESC
-     LIMIT ? OFFSET ?`,
-    [agentId, limit, offset]
-  );
-  if (!result[0]) return [];
-  return result[0].values.map((row: any[]) => ({
-    id: row[0],
-    agent_id: row[1],
-    agent_name: row[2],
-    action: row[3],
-    details: row[4],
-    created_at: row[5]
-  }));
+function getActivityLogsBySession(sessionId: string, limit: number, offset: number): ActivityLogWithAgent[] {
+  const snapshot = getDashboardSnapshot({ limit: 500, days: 365 });
+  const matchingSession = snapshot.sessions.find((session) => session.id === sessionId);
+  if (!matchingSession) {
+    return [];
+  }
+
+  return buildSyntheticActivityLogs(snapshot.sessions.filter((session) => session.id === sessionId), limit, offset);
 }
 
-// Helper function to get recent activity logs with agent name
-function getRecentActivityLogsWithName(limit: number, offset: number): ActivityLogWithAgent[] {
-  const { getDatabaseSync } = require('../../db/index.js');
-  const database = getDatabaseSync();
-  const result = database.exec(
-    `SELECT al.id, al.agent_id, COALESCE(al.agent_name, a.name) as agent_name, al.action, al.details, al.created_at
-     FROM activity_logs al
-     LEFT JOIN agents a ON al.agent_id = a.id
-     ORDER BY al.created_at DESC
-     LIMIT ? OFFSET ?`,
-    [limit, offset]
-  );
-  if (!result[0]) return [];
-  return result[0].values.map((row: any[]) => ({
-    id: row[0],
-    agent_id: row[1],
-    agent_name: row[2],
-    action: row[3],
-    details: row[4],
-    created_at: row[5]
-  }));
+function getRecentActivityLogsWithName(limit: number, offset: number, project?: string): ActivityLogWithAgent[] {
+  const snapshot = getDashboardSnapshot({ limit: 500, days: 365 });
+  const sessions = project
+    ? snapshot.sessions.filter((session) => session.directory === project)
+    : snapshot.sessions;
+
+  return buildSyntheticActivityLogs(sessions, limit, offset);
+}
+
+function buildSyntheticActivityLogs(
+  sessions: Array<{ id: string; title: string; agentLabel: string; status: string; updatedAt: string; todos: Array<{ content: string; status: string }> }>,
+  limit: number,
+  offset: number,
+): ActivityLogWithAgent[] {
+  const logs = sessions.flatMap((session, index) => {
+    const items: ActivityLogWithAgent[] = [{
+      id: index * 1000 + 1,
+      agent_id: session.id,
+      agent_name: session.title,
+      action: session.status === 'error' ? 'error' : session.status === 'running' ? 'started' : 'config_changed',
+      details: `${session.agentLabel} · ${session.status}`,
+      created_at: session.updatedAt,
+    }];
+
+    session.todos.forEach((todo, todoIndex) => {
+      items.push({
+        id: index * 1000 + 10 + todoIndex,
+        agent_id: session.id,
+        agent_name: session.title,
+        action: todo.status === 'completed' ? 'task_completed' : 'task_assigned',
+        details: todo.content,
+        created_at: session.updatedAt,
+      });
+    });
+
+    return items;
+  }).sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime());
+
+  const slice = logs.slice(offset, offset + limit);
+  return slice;
 }
 
 export default router;

@@ -3,20 +3,23 @@ import request from 'supertest';
 import express from 'express';
 import projectsRouter from './projects.js';
 import agentsRouter from './agents.js';
-import {
-  createProject,
-  getAllProjects,
-  getProject,
-  updateProject,
-  deleteProject,
-  getAllAgents,
-  getAgent,
-  updateAgent,
-  deleteAgent,
-} from '../../db/index.js';
+import { getAllAgents, getAgent, updateAgent, deleteAgent } from '../../db/index.js';
+import { getDashboardSnapshot } from '../opencode-reader.js';
 import type { Agent } from '../../db/schema.js';
 
 vi.mock('../../db/index.js');
+vi.mock('../opencode-reader.js', () => ({
+  getDashboardSnapshot: vi.fn(),
+}));
+
+const mockOverview = {
+  totalSessions: 0,
+  runningSessions: 0,
+  thinkingSessions: 0,
+  failedSessions: 0,
+  idleSessions: 0,
+  activeProjects: 0,
+};
 
 const createApp = () => {
   const app = express();
@@ -37,89 +40,78 @@ describe('Projects API', () => {
   describe('GET /api/projects', () => {
     it('returns all projects', async () => {
       const mockProjects = [
-        { id: 1, name: 'Project 1', description: '', created_at: '', updated_at: '' },
-        { id: 2, name: 'Project 2', description: '', created_at: '', updated_at: '' },
+        { id: '/repo/a', name: 'Project 1', directory: '/repo/a', projectId: 'global', activeSessionCount: 1, totalSessionCount: 2 },
+        { id: '/repo/b', name: 'Project 2', directory: '/repo/b', projectId: 'global', activeSessionCount: 0, totalSessionCount: 1 },
       ];
-      vi.mocked(getAllProjects).mockReturnValue(mockProjects);
+      vi.mocked(getDashboardSnapshot).mockReturnValue({
+        sessions: [],
+        tree: [],
+        projects: mockProjects,
+        overview: mockOverview,
+        error: null,
+      });
 
       const response = await request(app).get('/api/projects');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockProjects);
-      expect(getAllProjects).toHaveBeenCalledTimes(1);
+      expect(getDashboardSnapshot).toHaveBeenCalledTimes(1);
     });
 
     it('handles errors gracefully', async () => {
-      vi.mocked(getAllProjects).mockImplementation(() => {
-        throw new Error('Database error');
+      vi.mocked(getDashboardSnapshot).mockReturnValue({
+        sessions: [],
+        tree: [],
+        projects: [],
+        overview: mockOverview,
+        error: { code: 'DB_QUERY_FAILED', message: 'Database error' },
       });
 
       const response = await request(app).get('/api/projects');
 
-      expect(response.status).toBe(500);
-      expect(response.body).toEqual({ error: 'Failed to get projects' });
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ projects: [], error: 'Database error' });
     });
   });
 
   describe('POST /api/projects', () => {
-    it('creates a new project', async () => {
-      const newProject = { id: 1, name: 'New Project', description: 'Test', created_at: '', updated_at: '' };
-      vi.mocked(createProject).mockReturnValue(newProject);
-
+    it('rejects creating derived projects', async () => {
       const response = await request(app)
         .post('/api/projects')
         .send({ name: 'New Project', description: 'Test' });
 
-      expect(response.status).toBe(201);
-      expect(response.body).toEqual(newProject);
-      expect(createProject).toHaveBeenCalledWith('New Project', 'Test');
-    });
-
-    it('returns 400 if name is missing', async () => {
-      const response = await request(app)
-        .post('/api/projects')
-        .send({ description: 'Test' });
-
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({ error: 'Name is required' });
-    });
-
-    it('handles creation errors', async () => {
-      vi.mocked(createProject).mockImplementation(() => {
-        throw new Error('Database error');
-      });
-
-      const response = await request(app)
-        .post('/api/projects')
-        .send({ name: 'New Project' });
-
-      expect(response.status).toBe(500);
-      expect(response.body).toEqual({ error: 'Failed to create project' });
+      expect(response.status).toBe(405);
+      expect(response.body).toEqual({ error: 'Projects are derived from OpenCode sessions and cannot be created here' });
     });
   });
 
   describe('GET /api/projects/:id', () => {
     it('returns a project by id', async () => {
-      const project = { id: 1, name: 'Project 1', description: '', created_at: '', updated_at: '' };
-      vi.mocked(getProject).mockReturnValue(project);
+      const project = { id: '/repo/a', name: 'Project 1', directory: '/repo/a', projectId: 'global', activeSessionCount: 1, totalSessionCount: 2 };
+      vi.mocked(getDashboardSnapshot).mockReturnValue({
+        sessions: [],
+        tree: [],
+        projects: [project],
+        overview: mockOverview,
+        error: null,
+      });
 
-      const response = await request(app).get('/api/projects/1');
+      const response = await request(app).get('/api/projects/%2Frepo%2Fa');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(project);
     });
 
-    it('returns 400 for invalid id', async () => {
-      const response = await request(app).get('/api/projects/abc');
-
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({ error: 'Invalid ID' });
-    });
-
     it('returns 404 if project not found', async () => {
-      vi.mocked(getProject).mockReturnValue(null);
+      vi.mocked(getDashboardSnapshot).mockReturnValue({
+        sessions: [],
+        tree: [],
+        projects: [],
+        overview: mockOverview,
+        error: null,
+      });
 
-      const response = await request(app).get('/api/projects/999');
+      const response = await request(app).get('/api/projects/missing');
 
       expect(response.status).toBe(404);
       expect(response.body).toEqual({ error: 'Project not found' });
@@ -127,57 +119,22 @@ describe('Projects API', () => {
   });
 
   describe('PUT /api/projects/:id', () => {
-    it('updates a project', async () => {
-      const updated = { id: 1, name: 'Updated', description: 'Updated desc', created_at: '', updated_at: '' };
-      vi.mocked(updateProject).mockReturnValue(true);
-      vi.mocked(getProject).mockReturnValue(updated);
-
-      const response = await request(app)
-        .put('/api/projects/1')
-        .send({ name: 'Updated', description: 'Updated desc' });
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(updated);
-    });
-
-    it('returns 400 if name is missing', async () => {
+    it('rejects updates for derived projects', async () => {
       const response = await request(app)
         .put('/api/projects/1')
         .send({ description: 'Test' });
 
-      expect(response.status).toBe(400);
-      expect(response.body).toEqual({ error: 'Name is required' });
-    });
-
-    it('returns 404 if project not found', async () => {
-      vi.mocked(updateProject).mockReturnValue(false);
-
-      const response = await request(app)
-        .put('/api/projects/999')
-        .send({ name: 'Updated' });
-
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ error: 'Project not found' });
+      expect(response.status).toBe(405);
+      expect(response.body).toEqual({ error: 'Projects are read-only derived data' });
     });
   });
 
   describe('DELETE /api/projects/:id', () => {
-    it('deletes a project', async () => {
-      vi.mocked(deleteProject).mockReturnValue(true);
-
+    it('rejects deletes for derived projects', async () => {
       const response = await request(app).delete('/api/projects/1');
 
-      expect(response.status).toBe(204);
-      expect(deleteProject).toHaveBeenCalledWith(1);
-    });
-
-    it('returns 404 if project not found', async () => {
-      vi.mocked(deleteProject).mockReturnValue(false);
-
-      const response = await request(app).delete('/api/projects/999');
-
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ error: 'Project not found' });
+      expect(response.status).toBe(405);
+      expect(response.body).toEqual({ error: 'Projects are read-only derived data' });
     });
   });
 });
