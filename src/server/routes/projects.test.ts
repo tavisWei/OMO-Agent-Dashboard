@@ -18,6 +18,7 @@ const mockOverview = {
   thinkingSessions: 0,
   failedSessions: 0,
   idleSessions: 0,
+  queuedSessions: 0,
   completedSessions: 0,
   activeProjects: 0,
 };

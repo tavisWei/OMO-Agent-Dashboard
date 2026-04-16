@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type DashboardSessionStatus = 'idle' | 'running' | 'error' | 'stopped' | 'thinking' | 'offline' | 'active' | 'completed';
+export type DashboardSessionStatus = 'queued' | 'idle' | 'running' | 'error' | 'stopped' | 'thinking' | 'offline' | 'completed';
 
 export interface DashboardTodo {
   content: string;
@@ -49,6 +49,7 @@ export interface DashboardOverview {
   thinkingSessions: number;
   failedSessions: number;
   idleSessions: number;
+  queuedSessions: number;
   completedSessions: number;
   activeProjects: number;
 }

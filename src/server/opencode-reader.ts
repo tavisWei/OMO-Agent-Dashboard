@@ -155,7 +155,7 @@ export function getOpenCodeSessions(query: OpenCodeSessionQuery = {}): ReaderRes
     const rows = stmt.all(...values) as OpenCodeSessionRow[];
     const sessions = mapSessions(rows, dbResult.data);
     const filtered = query.activeOnly
-      ? sessions.filter((session) => session.status === 'running' || session.status === 'thinking' || session.status === 'active')
+      ? sessions.filter((session) => session.status === 'running' || session.status === 'thinking')
       : sessions;
 
     return { data: filtered, error: null };

@@ -16,7 +16,7 @@ export function inferSessionStatus(
   session: OpenCodeSessionRow,
   todos: OpenCodeTodoRow[],
   messages: OpenCodeMessageRow[],
-): AgentStatus | 'active' {
+): AgentStatus {
   const lastMessage = messages[0];
   const lastMessageTime = lastMessage?.parsed?.time?.created ?? lastMessage?.time_created ?? null;
   const isRecentlyActive = (
@@ -29,11 +29,11 @@ export function inferSessionStatus(
   }
 
   if (todos.some((todo) => todo.status === 'in_progress')) {
-    return isRecentlyActive ? 'running' : 'idle';
+    return isRecentlyActive ? 'running' : 'queued';
   }
 
   if (typeof lastMessageTime === 'number' && Date.now() - lastMessageTime <= ACTIVE_WINDOW_MS) {
-    return 'active';
+    return 'thinking';
   }
 
   if (Date.now() - session.time_updated <= ACTIVE_WINDOW_MS) {
@@ -44,7 +44,7 @@ export function inferSessionStatus(
     return 'completed';
   }
 
-  return 'idle';
+  return 'queued';
 }
 
 export function toDashboardTodos(todos: OpenCodeTodoRow[]): DashboardTodo[] {
@@ -133,7 +133,7 @@ export function toProjectGroups(
   sessions.forEach((session) => {
     const current = sessionCounts.get(session.directory) ?? { active: 0, total: 0, projectId: session.projectId };
     current.total += 1;
-    if (session.status === 'running' || session.status === 'thinking' || session.status === 'active') {
+    if (session.status === 'running' || session.status === 'thinking') {
       current.active += 1;
     }
     sessionCounts.set(session.directory, current);
@@ -158,9 +158,10 @@ export function toOverview(sessions: DashboardSession[], projectGroups: Dashboar
   return {
     totalSessions: sessions.length,
     runningSessions: sessions.filter((session) => session.status === 'running').length,
-    thinkingSessions: sessions.filter((session) => session.status === 'thinking' || session.status === 'active').length,
+    thinkingSessions: sessions.filter((session) => session.status === 'thinking').length,
     failedSessions: sessions.filter((session) => session.status === 'error').length,
     idleSessions: sessions.filter((session) => session.status === 'idle').length,
+    queuedSessions: sessions.filter((session) => session.status === 'queued').length,
     completedSessions: sessions.filter((session) => session.status === 'completed').length,
     activeProjects: projectGroups.filter((project) => project.activeSessionCount > 0).length,
   };

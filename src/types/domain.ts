@@ -56,6 +56,7 @@ export interface DashboardOverview {
   thinkingSessions: number;
   failedSessions: number;
   idleSessions: number;
+  queuedSessions: number;
   completedSessions: number;
   activeProjects: number;
 }
