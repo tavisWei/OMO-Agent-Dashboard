@@ -8,25 +8,31 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, showLabel = true }: StatusBadgeProps) {
   const { t } = useTranslation();
+  const translateStatus = (key: string, fallback: string) => {
+    const value = t(key);
+    return value === key ? fallback : value;
+  };
 
   const getStatusConfig = (s: AgentStatus) => {
     switch (s) {
       case 'running':
-        return { color: 'bg-emerald-500', label: t('status.running') };
+        return { color: 'bg-emerald-500', label: translateStatus('status.running', 'Running') };
+      case 'queued':
+        return { color: 'bg-slate-400', label: translateStatus('status.queued', 'Queued') };
       case 'idle':
-        return { color: 'bg-slate-400', label: t('status.idle') };
+        return { color: 'bg-slate-400', label: translateStatus('status.idle', 'Idle') };
       case 'completed':
-        return { color: 'bg-blue-500', label: t('status.completed') };
+        return { color: 'bg-blue-500', label: translateStatus('status.completed', 'Completed') };
       case 'error':
-        return { color: 'bg-red-500', label: t('status.error') };
+        return { color: 'bg-red-500', label: translateStatus('status.error', 'Error') };
       case 'stopped':
-        return { color: 'bg-slate-600', label: t('status.stopped') };
+        return { color: 'bg-slate-600', label: translateStatus('status.stopped', 'Stopped') };
       case 'thinking':
-        return { color: 'bg-yellow-500', label: t('status.thinking') };
+        return { color: 'bg-yellow-500', label: translateStatus('status.thinking', 'Thinking') };
       case 'offline':
-        return { color: 'bg-gray-300', label: t('status.offline') };
+        return { color: 'bg-gray-300', label: translateStatus('status.offline', 'Offline') };
       default:
-        return { color: 'bg-slate-400', label: t('status.idle') };
+        return { color: 'bg-slate-400', label: translateStatus('status.idle', 'Idle') };
     }
   };
 

@@ -5,7 +5,7 @@ import { useDashboardStore } from '../stores/dashboardStore';
 import { ROUTES } from '../routes';
 
 const statusColors: Record<string, string> = {
-  idle: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+  queued: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
   completed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   running: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
   thinking: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
@@ -56,7 +56,7 @@ export function AgentDetail() {
           <div className="flex items-center gap-3 mb-2 flex-wrap">
             <h1 className="text-2xl font-bold text-[var(--color-text)]">{session.title}</h1>
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusColors[session.status] ?? statusColors.idle}`}>
-              {t(`status.${session.status === 'active' ? 'thinking' : session.status}`)}
+              {t(`status.${session.status}`)}
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-medium border bg-slate-700/30 text-slate-300 border-slate-700/50">
               {session.model ?? 'unknown model'}

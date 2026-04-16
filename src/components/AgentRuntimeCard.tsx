@@ -4,6 +4,7 @@ import { useDashboardStore } from '../stores/dashboardStore';
 import { useTranslation } from 'react-i18next';
 
 const statusColors: Record<AgentRuntime['status'], string> = {
+  queued: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
   idle: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
   completed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   running: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
