@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { StatusBadge } from './StatusBadge';
+import { getAgentMeta } from '../lib/agentMeta';
 import type { AgentWithUsage } from '../types';
 
 interface AgentCardProps {
@@ -36,6 +37,7 @@ function formatTokens(tokens: number): string {
 export function AgentCard({ agent, onEdit }: AgentCardProps) {
   const { t } = useTranslation();
   const icon = getAgentIcon(agent.model);
+  const agentMeta = getAgentMeta(agent.name);
 
   return (
     <div className="group relative bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 hover:bg-slate-800/70 hover:border-slate-600/50 transition-all duration-200">
@@ -43,6 +45,11 @@ export function AgentCard({ agent, onEdit }: AgentCardProps) {
         <div className="flex items-center gap-3">
           <span className="text-2xl">{icon}</span>
           <div>
+            {agentMeta && (
+              <div className="text-[10px] text-blue-400 font-medium uppercase tracking-wider">
+                {agentMeta.name} — {agentMeta.description}
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-slate-100">{agent.name}</h3>
               <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
@@ -61,10 +68,10 @@ export function AgentCard({ agent, onEdit }: AgentCardProps) {
             type="button"
             onClick={() => onEdit(agent)}
             className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-400 hover:text-slate-200 transition-all duration-200"
-            aria-label={t('agents.edit')}
-            title={t('agents.edit')}
+            aria-label={t('agents.edit') || 'Edit agent'}
+            title={t('agents.edit') || 'Edit agent'}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
             </svg>
           </button>

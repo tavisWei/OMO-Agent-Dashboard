@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { AgentRuntime } from '../stores/agentRuntimeStore';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { useTranslation } from 'react-i18next';
+import { getAgentMeta } from '../lib/agentMeta';
 
 const statusColors: Record<AgentRuntime['status'], string> = {
   queued: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
@@ -27,10 +28,17 @@ export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
     ? new Date(agent.lastUpdate).toLocaleTimeString()
     : 'Never';
 
+  const agentMeta = getAgentMeta(session?.agentLabel);
+
   return (
     <div className="flex flex-col p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-slate-600/50 transition-colors">
       <div className="flex items-start justify-between mb-4">
         <div className="flex flex-col gap-1">
+          {agentMeta && (
+            <div className="text-[10px] text-[var(--color-accent)] font-medium uppercase tracking-wider">
+              {agentMeta.name} — {agentMeta.description}
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-[var(--color-text)] text-lg">
               {session?.title ?? agent.agentId}
