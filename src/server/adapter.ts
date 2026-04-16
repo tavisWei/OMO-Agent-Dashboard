@@ -18,11 +18,17 @@ export function inferSessionStatus(
   messages: OpenCodeMessageRow[],
 ): AgentStatus {
   const lastMessage = messages[0];
+  const parsed = lastMessage?.parsed ?? null;
   const lastMessageTime = lastMessage?.parsed?.time?.created ?? lastMessage?.time_created ?? null;
   const isRecentlyActive = (
     (typeof lastMessageTime === 'number' && Date.now() - lastMessageTime <= ACTIVE_WINDOW_MS) ||
     Date.now() - session.time_updated <= ACTIVE_WINDOW_MS
   );
+
+  const inputTokens = parsed?.tokens?.input ?? 0;
+  const outputTokens = parsed?.tokens?.output ?? 0;
+  const reasoningTokens = parsed?.tokens?.reasoning ?? 0;
+  const totalTokens = parsed?.tokens?.total ?? inputTokens + outputTokens + reasoningTokens;
 
   if (todos.some((todo) => todo.status === 'failed' || todo.status === 'cancelled')) {
     return 'error';
@@ -32,16 +38,16 @@ export function inferSessionStatus(
     return isRecentlyActive ? 'running' : 'queued';
   }
 
-  if (typeof lastMessageTime === 'number' && Date.now() - lastMessageTime <= ACTIVE_WINDOW_MS) {
-    return 'thinking';
-  }
-
-  if (Date.now() - session.time_updated <= ACTIVE_WINDOW_MS) {
-    return 'thinking';
+  if (todos.length === 0) {
+    return totalTokens > 0 || !isRecentlyActive ? 'completed' : 'queued';
   }
 
   if (todos.length > 0 && todos.every((todo) => todo.status === 'completed')) {
     return 'completed';
+  }
+
+  if (todos.every((todo) => todo.status === 'pending') && isRecentlyActive) {
+    return 'thinking';
   }
 
   return 'queued';
