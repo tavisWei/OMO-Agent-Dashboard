@@ -20,6 +20,7 @@ interface GetActivityLogsQuery {
   type?: string;
   agentId?: string;
   project?: string;
+  timeRange?: string;
   limit?: string;
   offset?: string;
 }
@@ -27,7 +28,7 @@ interface GetActivityLogsQuery {
 // GET /api/activity-logs - Get activity logs with optional filtering
 router.get('/', (req, res) => {
   try {
-    const { type, agentId, project, limit = '50', offset = '0' } = req.query as GetActivityLogsQuery;
+    const { type, agentId, project, timeRange, limit = '50', offset = '0' } = req.query as GetActivityLogsQuery;
     const limitNum = Math.min(parseInt(limit, 10) || 50, 100);
     const offsetNum = parseInt(offset, 10) || 0;
 
@@ -43,6 +44,16 @@ router.get('/', (req, res) => {
     if (type) {
       const types = type.split(',').map(t => t.trim());
       logs = logs.filter(log => types.includes(log.action));
+    }
+
+    if (timeRange && timeRange !== 'all') {
+      const now = Date.now();
+      const threshold = timeRange === 'today'
+        ? now - 24 * 60 * 60 * 1000
+        : timeRange === 'week'
+          ? now - 7 * 24 * 60 * 60 * 1000
+          : now - 30 * 24 * 60 * 60 * 1000;
+      logs = logs.filter((log) => new Date(log.created_at).getTime() >= threshold);
     }
 
     // Check if there are more results

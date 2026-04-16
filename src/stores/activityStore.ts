@@ -67,6 +67,12 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
       if (filters.agentId) {
         params.set('agentId', filters.agentId.toString());
       }
+      if (filters.project) {
+        params.set('project', filters.project);
+      }
+      if (filters.timeRange && filters.timeRange !== 'all') {
+        params.set('timeRange', filters.timeRange);
+      }
 
       const response = await fetch(`${API_BASE}/activity-logs?${params.toString()}`);
       if (!response.ok) {

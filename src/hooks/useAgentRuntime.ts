@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
 import { useAgentRuntimeStore } from '../stores/agentRuntimeStore';
 import { useDashboardStore } from '../stores/dashboardStore';
+import { useActivityStore } from '../stores/activityStore';
 
 const WS_URL = `ws://${window.location.hostname}:3001`;
 
 export function useAgentRuntime() {
   const { setWsConnected, setAgents } = useAgentRuntimeStore();
   const { applySnapshot, fetchSessions, fetchConfig, setWsConnected: setDashboardWsConnected } = useDashboardStore();
+  const fetchLogs = useActivityStore((state) => state.fetchLogs);
   
   useEffect(() => {
     let ws: WebSocket | null = null;
@@ -37,9 +39,11 @@ export function useAgentRuntime() {
                 overview: message.payload.overview,
                 tree: message.payload.tree,
               });
+              fetchLogs(true);
             }
             if (message.type === 'config_change') {
               fetchConfig();
+              fetchLogs(true);
             }
           } catch (e) {
             console.error('[AgentRuntime] Failed to parse message:', e);
@@ -68,5 +72,5 @@ export function useAgentRuntime() {
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (ws) ws.close();
     };
-  }, [setWsConnected, setAgents, applySnapshot, fetchSessions, fetchConfig, setDashboardWsConnected]);
+  }, [setWsConnected, setAgents, applySnapshot, fetchSessions, fetchConfig, setDashboardWsConnected, fetchLogs]);
 }
