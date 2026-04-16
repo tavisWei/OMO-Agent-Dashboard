@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import type { AgentRuntime } from '../stores/agentRuntimeStore';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { useTranslation } from 'react-i18next';
 
 const statusColors: Record<AgentRuntime['status'], string> = {
   idle: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+  completed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   running: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
   stopped: 'bg-slate-600/20 text-slate-300 border-slate-600/30',
   thinking: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
@@ -13,6 +15,7 @@ const statusColors: Record<AgentRuntime['status'], string> = {
 
 export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
   const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
   const sessions = useDashboardStore((state) => state.sessions);
   const projects = useDashboardStore((state) => state.projects);
 
@@ -58,7 +61,7 @@ export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
               {session.model ?? 'unknown model'}
             </p>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
-              <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-slate-500/20 text-slate-300">
+              <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-slate-500/20 text-[var(--color-text-secondary)] border border-[var(--color-border)]">
                 {session.sessionType}
               </span>
               <span className="text-[10px] text-[var(--color-text-secondary)]">
@@ -67,7 +70,31 @@ export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
               <span className="text-[10px] text-[var(--color-text-secondary)]">
                 tokens: {session.totalTokens}
               </span>
+              {session.todos.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setExpanded((value) => !value)}
+                  className="text-[10px] text-[var(--color-accent)] hover:underline"
+                >
+                  {expanded ? t('activity.hideDetails') : t('activity.showDetails')}
+                </button>
+              )}
             </div>
+            {expanded && session.todos.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {session.todos.map((todo) => (
+                  <div
+                    key={`${session.id}-${todo.position}-${todo.content}`}
+                    className={`rounded-md px-2.5 py-2 text-xs border ${todo.status === 'in_progress' ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-[var(--color-border)] bg-[var(--color-bg-secondary)]'}`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[var(--color-text)]">{todo.content}</span>
+                      <span className="text-[var(--color-text-secondary)] whitespace-nowrap">{todo.status}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="mt-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] border-dashed flex items-center justify-center">

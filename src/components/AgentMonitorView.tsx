@@ -7,7 +7,7 @@ import { ActivityFeed } from './ActivityFeed';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { useProjectStore } from '../stores/projectStore';
 
-const FILTERABLE_STATUSES = ['running', 'thinking', 'idle', 'error'] as const;
+const FILTERABLE_STATUSES = ['running', 'thinking', 'idle', 'completed', 'error'] as const;
 const PAGE_SIZE = 20;
 
 export function AgentMonitorView() {
@@ -45,6 +45,7 @@ export function AgentMonitorView() {
   const totalSessionsCount = filteredSessions.length;
   const runningCount = filteredSessions.filter((session) => session.status === 'running').length;
   const thinkingCount = filteredSessions.filter((session) => session.status === 'thinking' || session.status === 'active').length;
+  const completedCount = filteredSessions.filter((session) => session.status === 'completed').length;
   const errorCount = filteredSessions.filter((session) => session.status === 'error').length;
   const [monitorPage, setMonitorPage] = useState(1);
 
@@ -107,7 +108,7 @@ export function AgentMonitorView() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex flex-col">
           <span className="text-xs text-[var(--color-text-secondary)] mb-1">Active Sessions</span>
           <span className="text-3xl font-bold text-[var(--color-text)]">{effectiveProjectId || statusFilter.length > 0 ? totalSessionsCount : (overview?.totalSessions ?? totalSessionsCount)}</span>
@@ -119,6 +120,10 @@ export function AgentMonitorView() {
         <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex flex-col">
           <span className="text-xs text-[var(--color-text-secondary)] mb-1">{t('status.thinking')}</span>
           <span className="text-3xl font-bold text-yellow-500">{thinkingCount}</span>
+        </div>
+        <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex flex-col">
+          <span className="text-xs text-[var(--color-text-secondary)] mb-1">{t('status.completed')}</span>
+          <span className="text-3xl font-bold text-blue-500">{completedCount}</span>
         </div>
         <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex flex-col">
           <span className="text-xs text-[var(--color-text-secondary)] mb-1">{t('status.error')}</span>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type DashboardSessionStatus = 'idle' | 'running' | 'error' | 'stopped' | 'thinking' | 'offline' | 'active';
+export type DashboardSessionStatus = 'idle' | 'running' | 'error' | 'stopped' | 'thinking' | 'offline' | 'active' | 'completed';
 
 export interface DashboardTodo {
   content: string;
@@ -49,6 +49,7 @@ export interface DashboardOverview {
   thinkingSessions: number;
   failedSessions: number;
   idleSessions: number;
+  completedSessions: number;
   activeProjects: number;
 }
 
@@ -98,6 +99,7 @@ interface DashboardState {
 }
 
 const API_BASE = '/api';
+const DEFAULT_STATUS_FILTER: DashboardSessionStatus[] = ['running', 'thinking', 'error'];
 
 export const useDashboardStore = create<DashboardState>((set, get) => ({
   sessions: [],
@@ -111,7 +113,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   error: null,
   configError: null,
   wsConnected: false,
-  statusFilter: [],
+  statusFilter: DEFAULT_STATUS_FILTER,
   setSelectedProjectId: (selectedProjectId) => set({ selectedProjectId }),
   setWsConnected: (wsConnected) => set({ wsConnected }),
   toggleStatusFilter: (status) => set((state) => ({
@@ -119,7 +121,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       ? state.statusFilter.filter((entry) => entry !== status)
       : [...state.statusFilter, status],
   })),
-  clearStatusFilter: () => set({ statusFilter: [] }),
+  clearStatusFilter: () => set({ statusFilter: DEFAULT_STATUS_FILTER }),
   applySnapshot: (payload) => set((state) => ({
     sessions: payload.sessions ?? state.sessions,
     projects: payload.projects ?? state.projects,
