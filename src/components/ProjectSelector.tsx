@@ -15,7 +15,7 @@ export function ProjectSelector() {
         selectProject(nextValue);
         setDashboardProjectId(nextValue);
       }}
-      className="bg-[var(--color-bg-tertiary)] text-[var(--color-text)] border border-[var(--color-border)] rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+      className="w-full bg-[var(--color-bg-tertiary)] text-[var(--color-text)] border border-[var(--color-border)] rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
     >
       <option value="">{t('projects.select')}</option>
       {projects.map((project) => (
