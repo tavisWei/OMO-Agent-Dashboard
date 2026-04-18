@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { BrowserRouter, Link, Navigate, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout } from './components/AppLayout';
 import { SettingsPage } from './components/SettingsPage';
@@ -13,6 +13,105 @@ import { useThemeStore } from './stores/themeStore';
 import { useDashboardStore } from './stores/dashboardStore';
 import { getAgentMeta, getCategoryMeta } from './lib/agentMeta';
 import { ROUTES } from './routes';
+
+function ConfigRowEditor({ 
+  entryKey, 
+  currentModel, 
+  currentVariant, 
+  providerModels, 
+  type, 
+  onSave 
+}: { 
+  entryKey: string; 
+  currentModel: string; 
+  currentVariant?: string | null; 
+  providerModels: Record<string, string[]>; 
+  type: 'agents' | 'categories';
+  onSave: () => void;
+}) {
+  const { t } = useTranslation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [model, setModel] = useState(currentModel);
+  const [variant, setVariant] = useState(currentVariant ?? '');
+  const [saving, setSaving] = useState(false);
+
+  const allModels = Object.entries(providerModels || {}).flatMap(([provider, models]) => 
+    models.map(m => `${provider}/${m}`)
+  );
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/config/${type}/${encodeURIComponent(entryKey)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, variant: variant || undefined }),
+      });
+      if (!res.ok) throw new Error('Failed to save');
+      setIsEditing(false);
+      onSave();
+    } catch (e) {
+      console.error(e);
+      alert('Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!isEditing) {
+    return (
+      <button 
+        type="button"
+        onClick={() => setIsEditing(true)} 
+        className="text-xs text-[var(--color-accent)] hover:underline shrink-0 ml-2"
+      >
+        {t('models.editModel')}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 shrink-0 ml-2">
+      <select 
+        value={model} 
+        onChange={e => setModel(e.target.value)}
+        className="px-2 py-1 rounded border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] text-xs text-[var(--color-text)] max-w-[150px] truncate"
+      >
+        <option value="">Select model...</option>
+        {allModels.map(m => (
+          <option key={m} value={m}>{m}</option>
+        ))}
+      </select>
+      <input 
+        type="text" 
+        value={variant} 
+        onChange={e => setVariant(e.target.value)} 
+        placeholder="Variant"
+        className="px-2 py-1 rounded border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] text-xs text-[var(--color-text)] w-20"
+      />
+      <button 
+        type="button"
+        onClick={handleSave} 
+        disabled={saving || !model}
+        className="px-2 py-1 rounded bg-[var(--color-accent)] text-white text-xs disabled:opacity-50"
+      >
+        {saving ? '...' : 'Save'}
+      </button>
+      <button 
+        type="button"
+        onClick={() => {
+          setIsEditing(false);
+          setModel(currentModel);
+          setVariant(currentVariant ?? '');
+        }} 
+        disabled={saving}
+        className="px-2 py-1 rounded border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs disabled:opacity-50"
+      >
+        Cancel
+      </button>
+    </div>
+  );
+}
 
 function Agents() {
   const { t } = useTranslation();
@@ -86,9 +185,82 @@ function Agents() {
   const btnSecondary = 'px-3 py-1.5 rounded border border-[var(--color-border)] text-sm text-[var(--color-text-secondary)] disabled:opacity-50';
   const inputCls = 'px-2 py-1.5 rounded border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] text-sm text-[var(--color-text)]';
 
+  const allModels = Object.entries(config?.providerModels || {}).flatMap(([provider, models]) =>
+    models.map(m => `${provider}/${m}`)
+  );
+
+  const [batchModel, setBatchModel] = useState('');
+  const [batchVariant, setBatchVariant] = useState('');
+  const [batchSaving, setBatchSaving] = useState(false);
+
+  const handleBatchSwitch = async () => {
+    if (!batchModel || !config) return;
+    setBatchSaving(true);
+    try {
+      await Promise.all(
+        config.agents.map(entry =>
+          fetch(`/api/config/agents/${encodeURIComponent(entry.key)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: batchModel, variant: batchVariant || undefined }),
+          })
+        )
+      );
+      await fetchConfig();
+      setBatchModel('');
+      setBatchVariant('');
+    } catch (e) {
+      console.error(e);
+      alert('Batch switch failed');
+    } finally {
+      setBatchSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-[var(--color-text)]">{t('agents.title')}</h1>
+
+      <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5 space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-[var(--color-text)]">全局模型切换</h2>
+          <p className="text-xs text-[var(--color-text-secondary)]">一键切换所有智能体使用的模型。</p>
+        </div>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="flex items-center gap-3">
+            <label htmlFor="batch-model" className="text-xs text-[var(--color-text-secondary)] whitespace-nowrap">目标模型</label>
+            <select
+              id="batch-model"
+              value={batchModel}
+              onChange={(e) => setBatchModel(e.target.value)}
+              className={inputCls}
+            >
+              <option value="">选择模型...</option>
+              {allModels.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-3">
+            <label htmlFor="batch-variant" className="text-xs text-[var(--color-text-secondary)] whitespace-nowrap">推理强度</label>
+            <input
+              id="batch-variant"
+              value={batchVariant}
+              onChange={(e) => setBatchVariant(e.target.value)}
+              placeholder="medium / high / xhigh"
+              className={inputCls}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleBatchSwitch}
+            disabled={batchSaving || !batchModel}
+            className={btnPrimary}
+          >
+            {batchSaving ? t('common.saving') : '一键切换'}
+          </button>
+        </div>
+      </section>
 
       <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5 space-y-4">
         <div>
@@ -169,7 +341,14 @@ function Agents() {
                       <div className="font-medium text-[var(--color-text)] text-sm truncate">{entry.key}</div>
                       <div className="text-xs text-[var(--color-text-secondary)] truncate">{entry.model}{entry.variant ? ` · ${entry.variant}` : ''}</div>
                     </div>
-                    <Link to={ROUTES.MODELS} className="text-xs text-[var(--color-accent)] hover:underline shrink-0 ml-2">{t('models.editModel')}</Link>
+                    <ConfigRowEditor
+                      entryKey={entry.key}
+                      currentModel={entry.model}
+                      currentVariant={entry.variant}
+                      providerModels={config.providerModels || {}}
+                      type="agents"
+                      onSave={fetchConfig}
+                    />
                   </div>
                 );
               })}
@@ -194,7 +373,14 @@ function Agents() {
                       <div className="font-medium text-[var(--color-text)] text-sm truncate">{entry.key}</div>
                       <div className="text-xs text-[var(--color-text-secondary)] truncate">{entry.model}{entry.variant ? ` · ${entry.variant}` : ''}</div>
                     </div>
-                    <Link to={ROUTES.MODELS} className="text-xs text-[var(--color-accent)] hover:underline shrink-0 ml-2">{t('models.editModel')}</Link>
+                    <ConfigRowEditor
+                      entryKey={entry.key}
+                      currentModel={entry.model}
+                      currentVariant={entry.variant}
+                      providerModels={config.providerModels || {}}
+                      type="categories"
+                      onSave={fetchConfig}
+                    />
                   </div>
                 );
               })}

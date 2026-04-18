@@ -21,8 +21,6 @@ export default function AgentConfigPanel({
   
   const [model, setModel] = useState('');
   const [variant, setVariant] = useState('');
-  const [modelFilter, setModelFilter] = useState('');
-  const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [errors, setErrors] = useState<{ model?: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -30,19 +28,28 @@ export default function AgentConfigPanel({
   const modelInputId = 'agent-config-model';
   const variantInputId = 'agent-config-variant';
 
+  const getCanonicalModel = (m: { provider?: string; model_id: string }) => 
+    m.provider ? `${m.provider}/${m.model_id}` : m.model_id;
+
+  if (agent && model === agent.model) {
+    const matchingActive = activeModels.find(m => 
+      m.model_id === model || getCanonicalModel(m) === model
+    );
+    if (matchingActive) {
+      const canonical = getCanonicalModel(matchingActive);
+      if (canonical !== model) {
+        setModel(canonical);
+      }
+    }
+  }
+
   useEffect(() => {
     if (agent) {
       setModel(agent.model || '');
       setVariant('');
-      setModelFilter('');
       setErrors({});
     }
   }, [agent]);
-
-  const filteredModels = activeModels.filter((m) =>
-    m.name.toLowerCase().includes(modelFilter.toLowerCase()) || 
-    m.model_id.toLowerCase().includes(modelFilter.toLowerCase())
-  );
 
   const validate = useCallback((): boolean => {
     const newErrors: { model?: string } = {};
@@ -137,56 +144,43 @@ export default function AgentConfigPanel({
               {t('agents.model')}
             </label>
             <div className="relative">
-              <input
+              <select
                 id={modelInputId}
-                type="text"
-                value={modelFilter || model}
+                value={model}
                 onChange={(e) => {
-                  setModelFilter(e.target.value);
-                  setShowModelDropdown(true);
-                  if (!e.target.value) setModel('');
+                  setModel(e.target.value);
+                  setErrors((prev) => ({ ...prev, model: undefined }));
                 }}
-                onFocus={() => setShowModelDropdown(true)}
-                placeholder={t('agents.searchModel')}
                 className={`w-full px-4 py-2.5 rounded-lg border ${
                   errors.model
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-[var(--color-border)]'
-                } bg-[var(--color-bg-primary)] text-[var(--color-text)] focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all`}
-              />
+                } bg-[var(--color-bg-primary)] text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`}
+                disabled={isSaving}
+              >
+                {activeModels.length === 0 && !model && (
+                  <option value="" disabled>No active models available</option>
+                )}
+                {!model && activeModels.length > 0 && (
+                  <option value="" disabled>{t('agents.selectModel', 'Select a model')}</option>
+                )}
+                {model && !activeModels.some(m => {
+                  const providerModel = getCanonicalModel(m);
+                  return model === m.model_id || model === providerModel;
+                }) && (
+                  <option value={model} disabled>{model} (inactive)</option>
+                )}
+                {activeModels.map((m) => {
+                  const providerModel = getCanonicalModel(m);
+                  return (
+                    <option key={m.id} value={providerModel}>
+                      {m.name} ({providerModel})
+                    </option>
+                  );
+                })}
+              </select>
               {errors.model && (
                 <p className="mt-1 text-sm text-red-500">{errors.model}</p>
-              )}
-
-              {showModelDropdown && (
-                <div className="absolute z-10 w-full mt-1 bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                  {filteredModels.length > 0 ? (
-                    filteredModels.map((m) => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => {
-                          setModel(m.model_id);
-                          setModelFilter('');
-                          setShowModelDropdown(false);
-                          setErrors((prev) => ({ ...prev, model: undefined }));
-                        }}
-                        className={`w-full px-4 py-2.5 text-left flex flex-col hover:bg-[var(--color-bg-tertiary)] transition-colors ${
-                          model === m.model_id
-                            ? 'bg-indigo-500/10 text-indigo-400'
-                            : 'text-[var(--color-text)]'
-                        }`}
-                      >
-                        <span className="font-medium">{m.name}</span>
-                        <span className="text-xs opacity-70">{m.model_id}</span>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="px-4 py-2.5 text-[var(--color-text-secondary)]">
-                      {t('agents.noModelFound')}
-                    </div>
-                  )}
-                </div>
               )}
             </div>
             <p className="text-xs text-[var(--color-text-secondary)]">
