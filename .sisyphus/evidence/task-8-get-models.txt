@@ -1,0 +1,18 @@
+GET /api/models?provider=openai
+
+Status: 200 OK
+
+Response excerpt:
+[{
+  "id": 1,
+  "name": "GPT-4",
+  "provider": "openai",
+  "model_id": "gpt-4"
+}, {
+  "id": 2,
+  "name": "GPT-4o",
+  "provider": "openai",
+  "model_id": "gpt-4o"
+}]
+
+Verified seeded OpenAI models are available through the new models API.

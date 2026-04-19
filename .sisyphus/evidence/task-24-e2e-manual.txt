@@ -1,0 +1,11 @@
+
+Running 7 tests using 1 worker
+
+[1A[2K[1/7] [chromium] › e2e/dashboard.spec.ts:28:3 › OMO Agent Dashboard smoke flows › root page and navigation render
+[1A[2K[2/7] [chromium] › e2e/dashboard.spec.ts:36:3 › OMO Agent Dashboard smoke flows › model library page renders seeded models
+[1A[2K[3/7] [chromium] › e2e/dashboard.spec.ts:42:3 › OMO Agent Dashboard smoke flows › agents page opens new agent dialog
+[1A[2K[4/7] [chromium] › e2e/dashboard.spec.ts:50:3 › OMO Agent Dashboard smoke flows › kanban new task dialog exposes richer fields
+[1A[2K[5/7] [chromium] › e2e/dashboard.spec.ts:59:3 › OMO Agent Dashboard smoke flows › task detail route renders created task
+[1A[2K[6/7] [chromium] › e2e/dashboard.spec.ts:68:3 › OMO Agent Dashboard smoke flows › project detail route renders created project
+[1A[2K[7/7] [chromium] › e2e/dashboard.spec.ts:75:3 › OMO Agent Dashboard smoke flows › agent detail route renders created agent
+[1A[2K  7 passed (35.4s)

@@ -1,0 +1,8 @@
+npm run build
+
+Result: PASS
+
+Notes:
+- TypeScript build succeeded.
+- Vite production build succeeded.
+- Only non-blocking large chunk warning remained.

@@ -1,0 +1,14 @@
+POST /api/models
+Status: 201 Created
+Response:
+{"id":70,"name":"Verification Model 3","provider":"openai","model_id":"verification-model-3-20260413","description":"Verification model","pricing_input":1.25,"pricing_output":2.5,"max_tokens":16000,"is_active":true,"created_at":"2026-04-13 11:41:16","updated_at":"2026-04-13 11:41:16"}
+
+PUT /api/models/70
+Status: 200 OK
+Response:
+{"id":70,"name":"Verification Model 3","provider":"openai","model_id":"verification-model-3-20260413","description":"Updated verification model","pricing_input":1.25,"pricing_output":2.5,"max_tokens":16000,"is_active":false,"created_at":"2026-04-13 11:41:16","updated_at":"2026-04-13 11:41:32"}
+
+DELETE /api/models/70
+Status: 204 No Content
+
+Verified create, update, and delete for an unused model.

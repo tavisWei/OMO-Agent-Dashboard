@@ -1,0 +1,12 @@
+POST /api/agents verification
+Date: 2026-04-13
+Status: 201 Created
+Response:
+{"id":12,"name":"Evidence Agent","project_id":null,"model_id":1,"model":"gpt-4o","temperature":0.6,"top_p":0.85,"max_tokens":1024,"status":"idle","last_heartbeat":null,"config_path":null,"source":"ui_created","created_at":"2026-04-13 11:38:39","updated_at":"2026-04-13 11:38:39"}
+
+DELETE /api/agents/12 verification
+Status: 204 No Content
+
+Server log excerpt:
+[2026-04-13T11:38:39.085Z] POST /api/agents
+[2026-04-13T11:38:39.228Z] DELETE /api/agents/12

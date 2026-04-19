@@ -1,0 +1,13 @@
+HTTP/1.1 200 OK
+Content-Length: 2
+Access-Control-Allow-Headers: Content-Type, Authorization
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Origin: http://localhost:3002
+Connection: keep-alive
+Content-Type: application/json; charset=utf-8
+Date: Mon, 13 Apr 2026 11:11:20 GMT
+Etag: W/"2-l9Fw4VUO7kr8CvBlt4zaMCqXZ0w"
+Keep-Alive: timeout=4
+Proxy-Connection: keep-alive
+X-Powered-By: Express
+

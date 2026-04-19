@@ -1,0 +1,83 @@
+{
+  "created": {
+    "id": 2,
+    "project_id": null,
+    "agent_id": 14,
+    "parent_task_id": null,
+    "title": "Schema Verify Parent",
+    "description": "verify",
+    "status": "backlog",
+    "position": 1,
+    "depends_on": [
+      1,
+      2
+    ],
+    "priority": "high",
+    "labels": [
+      "schema",
+      "verify"
+    ],
+    "due_date": 1735689600,
+    "estimated_tokens": 1234,
+    "assigned_agents": [
+      14,
+      8
+    ],
+    "created_at": "2026-04-14 01:29:37",
+    "updated_at": "2026-04-14 01:29:37"
+  },
+  "fetched": {
+    "id": 2,
+    "project_id": null,
+    "agent_id": 14,
+    "parent_task_id": null,
+    "title": "Schema Verify Parent",
+    "description": "verify",
+    "status": "backlog",
+    "position": 1,
+    "depends_on": [
+      1,
+      2
+    ],
+    "priority": "high",
+    "labels": [
+      "schema",
+      "verify"
+    ],
+    "due_date": 1735689600,
+    "estimated_tokens": 1234,
+    "assigned_agents": [
+      14,
+      8
+    ],
+    "created_at": "2026-04-14 01:29:37",
+    "updated_at": "2026-04-14 01:29:37"
+  },
+  "all": {
+    "id": 2,
+    "project_id": null,
+    "agent_id": 14,
+    "parent_task_id": null,
+    "title": "Schema Verify Parent",
+    "description": "verify",
+    "status": "backlog",
+    "position": 1,
+    "depends_on": [
+      1,
+      2
+    ],
+    "priority": "high",
+    "labels": [
+      "schema",
+      "verify"
+    ],
+    "due_date": 1735689600,
+    "estimated_tokens": 1234,
+    "assigned_agents": [
+      14,
+      8
+    ],
+    "created_at": "2026-04-14 01:29:37",
+    "updated_at": "2026-04-14 01:29:37"
+  }
+}

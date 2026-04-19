@@ -7,6 +7,7 @@ import {
   saveRawConfig,
   updateAgentModel,
   updateCategoryModel,
+  updateCategoryModelsBatch,
   updateLegacyOmoAgent,
   addProviderModel,
   deleteProviderModel,
@@ -142,6 +143,29 @@ router.put('/categories/:name', (req, res) => {
     model: model.trim(),
     ...(typeof variant === 'string' ? { variant } : {}),
   });
+  if (result.error) {
+    return res.status(500).json({ error: result.error.message });
+  }
+
+  return res.json({ success: true });
+});
+
+router.put('/categories/batch', (req, res) => {
+  const { categories, model, variant } = req.body ?? {};
+  if (!Array.isArray(categories) || categories.length === 0) {
+    return res.status(400).json({ error: 'categories array is required' });
+  }
+  if (typeof model !== 'string' || model.trim().length === 0) {
+    return res.status(400).json({ error: 'model is required' });
+  }
+
+  const result = updateCategoryModelsBatch(
+    categories.filter((c): c is string => typeof c === 'string'),
+    {
+      model: model.trim(),
+      ...(typeof variant === 'string' ? { variant } : {}),
+    }
+  );
   if (result.error) {
     return res.status(500).json({ error: result.error.message });
   }

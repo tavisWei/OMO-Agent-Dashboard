@@ -1,0 +1,13 @@
+
+> omo-agent-dashboard@0.1.0 test:run
+> vitest run
+
+
+ RUN  v4.1.4 /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard
+
+
+ Test Files  7 passed (7)
+      Tests  99 passed (99)
+   Start at  15:41:38
+   Duration  22.26s (transform 895ms, setup 4.95s, import 5.18s, tests 5.73s, environment 36.42s)
+

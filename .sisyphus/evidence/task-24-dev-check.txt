@@ -1,0 +1,25 @@
+
+> omo-agent-dashboard@0.1.0 dev
+> concurrently -n server,client -c blue,green "npm run server" "npm run client"
+
+[server] 
+[server] > omo-agent-dashboard@0.1.0 server
+[server] > tsx watch src/server/index.ts
+[server] 
+[client] 
+[client] > omo-agent-dashboard@0.1.0 client
+[client] > vite --port 3002
+[client] 
+[client] 
+[client]   VITE v8.0.8  ready in 1933 ms
+[client] 
+[client]   ➜  Local:   http://localhost:3002/
+[client]   ➜  Network: use --host to expose
+[server] Database initialized
+[server] Found 1 agents in OMO config
+[server]   - Synced agent: Updated Agent (gpt-4)
+[server] OMO config sync completed
+[server] Server running on http://localhost:3001
+[server] [2026-04-14T06:47:36.123Z] GET /api/agents
+[server] npm run server exited with code SIGTERM
+[client] npm run client exited with code 143

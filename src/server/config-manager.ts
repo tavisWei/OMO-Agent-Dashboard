@@ -265,6 +265,24 @@ export function updateCategoryModel(categoryName: string, update: AgentModelUpda
   return writeJsonFile(paths.openAgentPath, root);
 }
 
+export function updateCategoryModelsBatch(categoryNames: string[], update: AgentModelUpdate): ConfigManagerResult<boolean> {
+  const paths = getConfigPaths();
+  const existing = readJsonFile(paths.openAgentPath);
+  const root = ((existing.data ?? {}) as JsonObject);
+  const categories = ((root.categories ?? {}) as Record<string, JsonObject>);
+
+  for (const categoryName of categoryNames) {
+    const nextCategory = { ...(categories[categoryName] ?? {}), model: update.model } as JsonObject;
+    if (update.variant !== undefined) {
+      nextCategory.variant = update.variant;
+    }
+    categories[categoryName] = nextCategory;
+  }
+
+  root.categories = categories;
+  return writeJsonFile(paths.openAgentPath, root);
+}
+
 export function updateLegacyOmoAgent(agentName: string, update: AgentModelUpdate): ConfigManagerResult<boolean> {
   const paths = getConfigPaths();
   const current = readJsoncFile(paths.omoPath);

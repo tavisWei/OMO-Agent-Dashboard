@@ -192,20 +192,42 @@ function Agents() {
   const [batchModel, setBatchModel] = useState('');
   const [batchVariant, setBatchVariant] = useState('');
   const [batchSaving, setBatchSaving] = useState(false);
+  const [batchScopeAgents, setBatchScopeAgents] = useState(true);
+  const [batchScopeCategories, setBatchScopeCategories] = useState(false);
 
   const handleBatchSwitch = async () => {
     if (!batchModel || !config) return;
     setBatchSaving(true);
     try {
-      await Promise.all(
-        config.agents.map(entry =>
-          fetch(`/api/config/agents/${encodeURIComponent(entry.key)}`, {
+      const promises: Promise<Response>[] = [];
+
+      if (batchScopeAgents) {
+        promises.push(
+          ...config.agents.map(entry =>
+            fetch(`/api/config/agents/${encodeURIComponent(entry.key)}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model: batchModel, variant: batchVariant || undefined }),
+            })
+          )
+        );
+      }
+
+      if (batchScopeCategories && config.categories.length > 0) {
+        const categoryUpdatePromises = config.categories.map(entry =>
+          fetch(`/api/config/categories/${encodeURIComponent(entry.key)}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ model: batchModel, variant: batchVariant || undefined }),
           })
-        )
-      );
+        );
+        promises.push(...categoryUpdatePromises);
+      }
+
+      if (promises.length > 0) {
+        await Promise.all(promises);
+      }
+
       await fetchConfig();
       setBatchModel('');
       setBatchVariant('');
@@ -254,11 +276,31 @@ function Agents() {
           <button
             type="button"
             onClick={handleBatchSwitch}
-            disabled={batchSaving || !batchModel}
+            disabled={batchSaving || !batchModel || (!batchScopeAgents && !batchScopeCategories)}
             className={btnPrimary}
           >
             {batchSaving ? t('common.saving') : '一键切换'}
           </button>
+        </div>
+        <div className="flex gap-4 pt-2">
+          <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={batchScopeAgents}
+              onChange={(e) => setBatchScopeAgents(e.target.checked)}
+              className="rounded border-[var(--color-border)]"
+            />
+            智能体 (Agents)
+          </label>
+          <label className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={batchScopeCategories}
+              onChange={(e) => setBatchScopeCategories(e.target.checked)}
+              className="rounded border-[var(--color-border)]"
+            />
+            分类预设 (Categories)
+          </label>
         </div>
       </section>
 

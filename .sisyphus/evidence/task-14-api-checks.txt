@@ -1,0 +1,1038 @@
+{
+  "project": {
+    "status": 201,
+    "body": {
+      "id": 1,
+      "name": "Task14 Project 1776131289920",
+      "description": "task-14 verification",
+      "created_at": "2026-04-14 01:48:10",
+      "updated_at": "2026-04-14 01:48:10"
+    }
+  },
+  "agentA": {
+    "status": 201,
+    "body": {
+      "id": 16,
+      "name": "task14-agent-a-1776131289920",
+      "project_id": 1,
+      "model_id": null,
+      "model": "gpt-4",
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "max_tokens": 4096,
+      "status": "idle",
+      "last_heartbeat": null,
+      "config_path": null,
+      "source": "ui_created",
+      "created_at": "2026-04-14 01:48:10",
+      "updated_at": "2026-04-14 01:48:10"
+    }
+  },
+  "agentB": {
+    "status": 201,
+    "body": {
+      "id": 17,
+      "name": "task14-agent-b-1776131289920",
+      "project_id": 1,
+      "model_id": null,
+      "model": "gpt-4o",
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "max_tokens": 4096,
+      "status": "idle",
+      "last_heartbeat": null,
+      "config_path": null,
+      "source": "ui_created",
+      "created_at": "2026-04-14 01:48:10",
+      "updated_at": "2026-04-14 01:48:10"
+    }
+  },
+  "blocker": {
+    "status": 201,
+    "body": {
+      "task": {
+        "id": 3,
+        "project_id": 1,
+        "agent_id": 16,
+        "parent_task_id": null,
+        "title": "Task14 blocker 1776131289920",
+        "description": "dependency blocker",
+        "status": "backlog",
+        "position": 0,
+        "depends_on": [],
+        "priority": "medium",
+        "labels": [],
+        "due_date": null,
+        "estimated_tokens": null,
+        "assigned_agents": [
+          16
+        ],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "project": {
+        "id": 1,
+        "name": "Task14 Project 1776131289920",
+        "description": "task-14 verification",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "legacy_agent": {
+        "id": 16,
+        "name": "task14-agent-a-1776131289920",
+        "project_id": 1,
+        "model_id": null,
+        "model": "gpt-4",
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "max_tokens": 4096,
+        "status": "idle",
+        "last_heartbeat": null,
+        "config_path": null,
+        "source": "ui_created",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "assignments": [
+        {
+          "task_id": 3,
+          "agent_id": 16,
+          "role": "lead",
+          "assigned_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "assigned_agent_details": [
+        {
+          "id": 16,
+          "name": "task14-agent-a-1776131289920",
+          "project_id": 1,
+          "model_id": null,
+          "model": "gpt-4",
+          "temperature": 0.7,
+          "top_p": 0.9,
+          "max_tokens": 4096,
+          "status": "idle",
+          "last_heartbeat": null,
+          "config_path": null,
+          "source": "ui_created",
+          "created_at": "2026-04-14 01:48:10",
+          "updated_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "dependencies": {
+        "blocking": [],
+        "dependents": []
+      },
+      "subtasks": []
+    }
+  },
+  "mainTask": {
+    "status": 201,
+    "body": {
+      "task": {
+        "id": 4,
+        "project_id": 1,
+        "agent_id": 16,
+        "parent_task_id": null,
+        "title": "Task14 main 1776131289920",
+        "description": "main task with dependency and multi-agent assignment",
+        "status": "backlog",
+        "position": 1,
+        "depends_on": [
+          3
+        ],
+        "priority": "high",
+        "labels": [
+          "wave3",
+          "task14"
+        ],
+        "due_date": null,
+        "estimated_tokens": 1200,
+        "assigned_agents": [
+          16,
+          17
+        ],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "project": {
+        "id": 1,
+        "name": "Task14 Project 1776131289920",
+        "description": "task-14 verification",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "legacy_agent": {
+        "id": 16,
+        "name": "task14-agent-a-1776131289920",
+        "project_id": 1,
+        "model_id": null,
+        "model": "gpt-4",
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "max_tokens": 4096,
+        "status": "idle",
+        "last_heartbeat": null,
+        "config_path": null,
+        "source": "ui_created",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "assignments": [
+        {
+          "task_id": 4,
+          "agent_id": 16,
+          "role": "lead",
+          "assigned_at": "2026-04-14 01:48:10"
+        },
+        {
+          "task_id": 4,
+          "agent_id": 17,
+          "role": "worker",
+          "assigned_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "assigned_agent_details": [
+        {
+          "id": 16,
+          "name": "task14-agent-a-1776131289920",
+          "project_id": 1,
+          "model_id": null,
+          "model": "gpt-4",
+          "temperature": 0.7,
+          "top_p": 0.9,
+          "max_tokens": 4096,
+          "status": "idle",
+          "last_heartbeat": null,
+          "config_path": null,
+          "source": "ui_created",
+          "created_at": "2026-04-14 01:48:10",
+          "updated_at": "2026-04-14 01:48:10"
+        },
+        {
+          "id": 17,
+          "name": "task14-agent-b-1776131289920",
+          "project_id": 1,
+          "model_id": null,
+          "model": "gpt-4o",
+          "temperature": 0.7,
+          "top_p": 0.9,
+          "max_tokens": 4096,
+          "status": "idle",
+          "last_heartbeat": null,
+          "config_path": null,
+          "source": "ui_created",
+          "created_at": "2026-04-14 01:48:10",
+          "updated_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "dependencies": {
+        "blocking": [
+          {
+            "task_id": 4,
+            "depends_on_task_id": 3,
+            "dependency_type": "requires",
+            "task": {
+              "id": 3,
+              "project_id": 1,
+              "agent_id": 16,
+              "parent_task_id": null,
+              "title": "Task14 blocker 1776131289920",
+              "description": "dependency blocker",
+              "status": "backlog",
+              "position": 0,
+              "depends_on": [],
+              "priority": "medium",
+              "labels": [],
+              "due_date": null,
+              "estimated_tokens": null,
+              "assigned_agents": [
+                16
+              ],
+              "created_at": "2026-04-14 01:48:10",
+              "updated_at": "2026-04-14 01:48:10"
+            }
+          }
+        ],
+        "dependents": []
+      },
+      "subtasks": []
+    }
+  },
+  "blockedTransition": {
+    "status": 400,
+    "body": {
+      "error": "Task is blocked by unfinished dependencies: 3"
+    }
+  },
+  "blockerStart": {
+    "status": 200,
+    "body": {
+      "task": {
+        "id": 3,
+        "project_id": 1,
+        "agent_id": 16,
+        "parent_task_id": null,
+        "title": "Task14 blocker 1776131289920",
+        "description": "dependency blocker",
+        "status": "in_progress",
+        "position": 0,
+        "depends_on": [],
+        "priority": "medium",
+        "labels": [],
+        "due_date": null,
+        "estimated_tokens": null,
+        "assigned_agents": [
+          16
+        ],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "project": {
+        "id": 1,
+        "name": "Task14 Project 1776131289920",
+        "description": "task-14 verification",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "legacy_agent": {
+        "id": 16,
+        "name": "task14-agent-a-1776131289920",
+        "project_id": 1,
+        "model_id": null,
+        "model": "gpt-4",
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "max_tokens": 4096,
+        "status": "idle",
+        "last_heartbeat": null,
+        "config_path": null,
+        "source": "ui_created",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "assignments": [
+        {
+          "task_id": 3,
+          "agent_id": 16,
+          "role": "lead",
+          "assigned_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "assigned_agent_details": [
+        {
+          "id": 16,
+          "name": "task14-agent-a-1776131289920",
+          "project_id": 1,
+          "model_id": null,
+          "model": "gpt-4",
+          "temperature": 0.7,
+          "top_p": 0.9,
+          "max_tokens": 4096,
+          "status": "idle",
+          "last_heartbeat": null,
+          "config_path": null,
+          "source": "ui_created",
+          "created_at": "2026-04-14 01:48:10",
+          "updated_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "dependencies": {
+        "blocking": [],
+        "dependents": [
+          {
+            "task_id": 4,
+            "depends_on_task_id": 3,
+            "dependency_type": "requires",
+            "task": {
+              "id": 4,
+              "project_id": 1,
+              "agent_id": 16,
+              "parent_task_id": null,
+              "title": "Task14 main 1776131289920",
+              "description": "main task with dependency and multi-agent assignment",
+              "status": "backlog",
+              "position": 1,
+              "depends_on": [
+                3
+              ],
+              "priority": "high",
+              "labels": [
+                "wave3",
+                "task14"
+              ],
+              "due_date": null,
+              "estimated_tokens": 1200,
+              "assigned_agents": [
+                16,
+                17
+              ],
+              "created_at": "2026-04-14 01:48:10",
+              "updated_at": "2026-04-14 01:48:10"
+            }
+          }
+        ]
+      },
+      "subtasks": []
+    }
+  },
+  "blockerDone": {
+    "status": 200,
+    "body": {
+      "task": {
+        "id": 3,
+        "project_id": 1,
+        "agent_id": 16,
+        "parent_task_id": null,
+        "title": "Task14 blocker 1776131289920",
+        "description": "dependency blocker",
+        "status": "done",
+        "position": 0,
+        "depends_on": [],
+        "priority": "medium",
+        "labels": [],
+        "due_date": null,
+        "estimated_tokens": null,
+        "assigned_agents": [
+          16
+        ],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "project": {
+        "id": 1,
+        "name": "Task14 Project 1776131289920",
+        "description": "task-14 verification",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "legacy_agent": {
+        "id": 16,
+        "name": "task14-agent-a-1776131289920",
+        "project_id": 1,
+        "model_id": null,
+        "model": "gpt-4",
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "max_tokens": 4096,
+        "status": "idle",
+        "last_heartbeat": null,
+        "config_path": null,
+        "source": "ui_created",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "assignments": [
+        {
+          "task_id": 3,
+          "agent_id": 16,
+          "role": "lead",
+          "assigned_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "assigned_agent_details": [
+        {
+          "id": 16,
+          "name": "task14-agent-a-1776131289920",
+          "project_id": 1,
+          "model_id": null,
+          "model": "gpt-4",
+          "temperature": 0.7,
+          "top_p": 0.9,
+          "max_tokens": 4096,
+          "status": "idle",
+          "last_heartbeat": null,
+          "config_path": null,
+          "source": "ui_created",
+          "created_at": "2026-04-14 01:48:10",
+          "updated_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "dependencies": {
+        "blocking": [],
+        "dependents": [
+          {
+            "task_id": 4,
+            "depends_on_task_id": 3,
+            "dependency_type": "requires",
+            "task": {
+              "id": 4,
+              "project_id": 1,
+              "agent_id": 16,
+              "parent_task_id": null,
+              "title": "Task14 main 1776131289920",
+              "description": "main task with dependency and multi-agent assignment",
+              "status": "backlog",
+              "position": 1,
+              "depends_on": [
+                3
+              ],
+              "priority": "high",
+              "labels": [
+                "wave3",
+                "task14"
+              ],
+              "due_date": null,
+              "estimated_tokens": 1200,
+              "assigned_agents": [
+                16,
+                17
+              ],
+              "created_at": "2026-04-14 01:48:10",
+              "updated_at": "2026-04-14 01:48:10"
+            }
+          }
+        ]
+      },
+      "subtasks": []
+    }
+  },
+  "invalidRegression": {
+    "status": 400,
+    "body": {
+      "error": "Invalid task status transition from done to backlog"
+    }
+  },
+  "assignmentUpdate": {
+    "status": 200,
+    "body": {
+      "task": {
+        "id": 4,
+        "project_id": 1,
+        "agent_id": 16,
+        "parent_task_id": null,
+        "title": "Task14 main 1776131289920",
+        "description": "main task with dependency and multi-agent assignment",
+        "status": "backlog",
+        "position": 1,
+        "depends_on": [
+          3
+        ],
+        "priority": "high",
+        "labels": [
+          "wave3",
+          "task14"
+        ],
+        "due_date": null,
+        "estimated_tokens": 1200,
+        "assigned_agents": [
+          16,
+          17
+        ],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "assignments": [
+        {
+          "task_id": 4,
+          "agent_id": 16,
+          "role": "lead",
+          "assigned_at": "2026-04-14 01:48:10"
+        },
+        {
+          "task_id": 4,
+          "agent_id": 17,
+          "role": "reviewer",
+          "assigned_at": "2026-04-14 01:48:10"
+        }
+      ]
+    }
+  },
+  "extraDependency": {
+    "status": 201,
+    "body": {
+      "task": {
+        "id": 5,
+        "project_id": 1,
+        "agent_id": null,
+        "parent_task_id": null,
+        "title": "Task14 optional dep 1776131289920",
+        "description": "",
+        "status": "backlog",
+        "position": 2,
+        "depends_on": [],
+        "priority": "medium",
+        "labels": [],
+        "due_date": null,
+        "estimated_tokens": null,
+        "assigned_agents": [],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "project": {
+        "id": 1,
+        "name": "Task14 Project 1776131289920",
+        "description": "task-14 verification",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "legacy_agent": null,
+      "assignments": [],
+      "assigned_agent_details": [],
+      "dependencies": {
+        "blocking": [],
+        "dependents": []
+      },
+      "subtasks": []
+    }
+  },
+  "dependencyAdd": {
+    "status": 200,
+    "body": {
+      "task": {
+        "id": 4,
+        "project_id": 1,
+        "agent_id": 16,
+        "parent_task_id": null,
+        "title": "Task14 main 1776131289920",
+        "description": "main task with dependency and multi-agent assignment",
+        "status": "backlog",
+        "position": 1,
+        "depends_on": [
+          3,
+          5
+        ],
+        "priority": "high",
+        "labels": [
+          "wave3",
+          "task14"
+        ],
+        "due_date": null,
+        "estimated_tokens": 1200,
+        "assigned_agents": [
+          16,
+          17
+        ],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "dependencies": [
+        {
+          "task_id": 4,
+          "depends_on_task_id": 3,
+          "dependency_type": "requires"
+        },
+        {
+          "task_id": 4,
+          "depends_on_task_id": 5,
+          "dependency_type": "requires"
+        }
+      ]
+    }
+  },
+  "dependencyRemove": {
+    "status": 200,
+    "body": {
+      "task": {
+        "id": 4,
+        "project_id": 1,
+        "agent_id": 16,
+        "parent_task_id": null,
+        "title": "Task14 main 1776131289920",
+        "description": "main task with dependency and multi-agent assignment",
+        "status": "backlog",
+        "position": 1,
+        "depends_on": [
+          3
+        ],
+        "priority": "high",
+        "labels": [
+          "wave3",
+          "task14"
+        ],
+        "due_date": null,
+        "estimated_tokens": 1200,
+        "assigned_agents": [
+          16,
+          17
+        ],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "dependencies": [
+        {
+          "task_id": 4,
+          "depends_on_task_id": 3,
+          "dependency_type": "requires"
+        }
+      ]
+    }
+  },
+  "mainInProgress": {
+    "status": 200,
+    "body": {
+      "task": {
+        "id": 4,
+        "project_id": 1,
+        "agent_id": 16,
+        "parent_task_id": null,
+        "title": "Task14 main 1776131289920",
+        "description": "main task with dependency and multi-agent assignment",
+        "status": "in_progress",
+        "position": 1,
+        "depends_on": [
+          3
+        ],
+        "priority": "high",
+        "labels": [
+          "wave3",
+          "task14"
+        ],
+        "due_date": null,
+        "estimated_tokens": 1200,
+        "assigned_agents": [
+          16,
+          17
+        ],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "project": {
+        "id": 1,
+        "name": "Task14 Project 1776131289920",
+        "description": "task-14 verification",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "legacy_agent": {
+        "id": 16,
+        "name": "task14-agent-a-1776131289920",
+        "project_id": 1,
+        "model_id": null,
+        "model": "gpt-4",
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "max_tokens": 4096,
+        "status": "idle",
+        "last_heartbeat": null,
+        "config_path": null,
+        "source": "ui_created",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "assignments": [
+        {
+          "task_id": 4,
+          "agent_id": 16,
+          "role": "lead",
+          "assigned_at": "2026-04-14 01:48:10"
+        },
+        {
+          "task_id": 4,
+          "agent_id": 17,
+          "role": "reviewer",
+          "assigned_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "assigned_agent_details": [
+        {
+          "id": 16,
+          "name": "task14-agent-a-1776131289920",
+          "project_id": 1,
+          "model_id": null,
+          "model": "gpt-4",
+          "temperature": 0.7,
+          "top_p": 0.9,
+          "max_tokens": 4096,
+          "status": "idle",
+          "last_heartbeat": null,
+          "config_path": null,
+          "source": "ui_created",
+          "created_at": "2026-04-14 01:48:10",
+          "updated_at": "2026-04-14 01:48:10"
+        },
+        {
+          "id": 17,
+          "name": "task14-agent-b-1776131289920",
+          "project_id": 1,
+          "model_id": null,
+          "model": "gpt-4o",
+          "temperature": 0.7,
+          "top_p": 0.9,
+          "max_tokens": 4096,
+          "status": "idle",
+          "last_heartbeat": null,
+          "config_path": null,
+          "source": "ui_created",
+          "created_at": "2026-04-14 01:48:10",
+          "updated_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "dependencies": {
+        "blocking": [
+          {
+            "task_id": 4,
+            "depends_on_task_id": 3,
+            "dependency_type": "requires",
+            "task": {
+              "id": 3,
+              "project_id": 1,
+              "agent_id": 16,
+              "parent_task_id": null,
+              "title": "Task14 blocker 1776131289920",
+              "description": "dependency blocker",
+              "status": "done",
+              "position": 0,
+              "depends_on": [],
+              "priority": "medium",
+              "labels": [],
+              "due_date": null,
+              "estimated_tokens": null,
+              "assigned_agents": [
+                16
+              ],
+              "created_at": "2026-04-14 01:48:10",
+              "updated_at": "2026-04-14 01:48:10"
+            }
+          }
+        ],
+        "dependents": []
+      },
+      "subtasks": []
+    }
+  },
+  "subtask": {
+    "status": 201,
+    "body": {
+      "task": {
+        "id": 6,
+        "project_id": 1,
+        "agent_id": null,
+        "parent_task_id": 4,
+        "title": "Task14 subtask 1776131289920",
+        "description": "",
+        "status": "backlog",
+        "position": 3,
+        "depends_on": [],
+        "priority": "medium",
+        "labels": [],
+        "due_date": null,
+        "estimated_tokens": null,
+        "assigned_agents": [],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "project": {
+        "id": 1,
+        "name": "Task14 Project 1776131289920",
+        "description": "task-14 verification",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "legacy_agent": null,
+      "assignments": [],
+      "assigned_agent_details": [],
+      "dependencies": {
+        "blocking": [],
+        "dependents": []
+      },
+      "subtasks": []
+    }
+  },
+  "detail": {
+    "status": 200,
+    "body": {
+      "task": {
+        "id": 4,
+        "project_id": 1,
+        "agent_id": 16,
+        "parent_task_id": null,
+        "title": "Task14 main 1776131289920",
+        "description": "main task with dependency and multi-agent assignment",
+        "status": "in_progress",
+        "position": 1,
+        "depends_on": [
+          3
+        ],
+        "priority": "high",
+        "labels": [
+          "wave3",
+          "task14"
+        ],
+        "due_date": null,
+        "estimated_tokens": 1200,
+        "assigned_agents": [
+          16,
+          17
+        ],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "project": {
+        "id": 1,
+        "name": "Task14 Project 1776131289920",
+        "description": "task-14 verification",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "legacy_agent": {
+        "id": 16,
+        "name": "task14-agent-a-1776131289920",
+        "project_id": 1,
+        "model_id": null,
+        "model": "gpt-4",
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "max_tokens": 4096,
+        "status": "idle",
+        "last_heartbeat": null,
+        "config_path": null,
+        "source": "ui_created",
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      },
+      "assignments": [
+        {
+          "task_id": 4,
+          "agent_id": 16,
+          "role": "lead",
+          "assigned_at": "2026-04-14 01:48:10"
+        },
+        {
+          "task_id": 4,
+          "agent_id": 17,
+          "role": "reviewer",
+          "assigned_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "assigned_agent_details": [
+        {
+          "id": 16,
+          "name": "task14-agent-a-1776131289920",
+          "project_id": 1,
+          "model_id": null,
+          "model": "gpt-4",
+          "temperature": 0.7,
+          "top_p": 0.9,
+          "max_tokens": 4096,
+          "status": "idle",
+          "last_heartbeat": null,
+          "config_path": null,
+          "source": "ui_created",
+          "created_at": "2026-04-14 01:48:10",
+          "updated_at": "2026-04-14 01:48:10"
+        },
+        {
+          "id": 17,
+          "name": "task14-agent-b-1776131289920",
+          "project_id": 1,
+          "model_id": null,
+          "model": "gpt-4o",
+          "temperature": 0.7,
+          "top_p": 0.9,
+          "max_tokens": 4096,
+          "status": "idle",
+          "last_heartbeat": null,
+          "config_path": null,
+          "source": "ui_created",
+          "created_at": "2026-04-14 01:48:10",
+          "updated_at": "2026-04-14 01:48:10"
+        }
+      ],
+      "dependencies": {
+        "blocking": [
+          {
+            "task_id": 4,
+            "depends_on_task_id": 3,
+            "dependency_type": "requires",
+            "task": {
+              "id": 3,
+              "project_id": 1,
+              "agent_id": 16,
+              "parent_task_id": null,
+              "title": "Task14 blocker 1776131289920",
+              "description": "dependency blocker",
+              "status": "done",
+              "position": 0,
+              "depends_on": [],
+              "priority": "medium",
+              "labels": [],
+              "due_date": null,
+              "estimated_tokens": null,
+              "assigned_agents": [
+                16
+              ],
+              "created_at": "2026-04-14 01:48:10",
+              "updated_at": "2026-04-14 01:48:10"
+            }
+          }
+        ],
+        "dependents": []
+      },
+      "subtasks": [
+        {
+          "id": 6,
+          "project_id": 1,
+          "agent_id": null,
+          "parent_task_id": 4,
+          "title": "Task14 subtask 1776131289920",
+          "description": "",
+          "status": "backlog",
+          "position": 3,
+          "depends_on": [],
+          "priority": "medium",
+          "labels": [],
+          "due_date": null,
+          "estimated_tokens": null,
+          "assigned_agents": [],
+          "created_at": "2026-04-14 01:48:10",
+          "updated_at": "2026-04-14 01:48:10"
+        }
+      ]
+    }
+  },
+  "subtasks": {
+    "status": 200,
+    "body": [
+      {
+        "id": 6,
+        "project_id": 1,
+        "agent_id": null,
+        "parent_task_id": 4,
+        "title": "Task14 subtask 1776131289920",
+        "description": "",
+        "status": "backlog",
+        "position": 3,
+        "depends_on": [],
+        "priority": "medium",
+        "labels": [],
+        "due_date": null,
+        "estimated_tokens": null,
+        "assigned_agents": [],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      }
+    ]
+  },
+  "filtered": {
+    "status": 200,
+    "body": [
+      {
+        "id": 4,
+        "project_id": 1,
+        "agent_id": 16,
+        "parent_task_id": null,
+        "title": "Task14 main 1776131289920",
+        "description": "main task with dependency and multi-agent assignment",
+        "status": "in_progress",
+        "position": 1,
+        "depends_on": [
+          3
+        ],
+        "priority": "high",
+        "labels": [
+          "wave3",
+          "task14"
+        ],
+        "due_date": null,
+        "estimated_tokens": 1200,
+        "assigned_agents": [
+          16,
+          17
+        ],
+        "created_at": "2026-04-14 01:48:10",
+        "updated_at": "2026-04-14 01:48:10"
+      }
+    ]
+  }
+}

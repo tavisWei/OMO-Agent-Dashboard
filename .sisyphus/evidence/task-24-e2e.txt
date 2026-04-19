@@ -1,0 +1,448 @@
+
+> omo-agent-dashboard@0.1.0 test:e2e
+> playwright test
+
+
+Running 7 tests using 2 workers
+
+[1A[2K[1/7] [chromium] › e2e/dashboard.spec.ts:28:3 › OMO Agent Dashboard smoke flows › root page and navigation render
+[1A[2K[2/7] [chromium] › e2e/dashboard.spec.ts:36:3 › OMO Agent Dashboard smoke flows › model library page renders seeded models
+[1A[2K[3/7] (retries) [chromium] › e2e/dashboard.spec.ts:28:3 › OMO Agent Dashboard smoke flows › root page and navigation render (retry #1)
+[1A[2K[4/7] (retries) [chromium] › e2e/dashboard.spec.ts:36:3 › OMO Agent Dashboard smoke flows › model library page renders seeded models (retry #1)
+[1A[2K  1) [chromium] › e2e/dashboard.spec.ts:28:3 › OMO Agent Dashboard smoke flows › root page and navigation render 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3002/
+    Call log:
+    [2m  - navigating to "http://localhost:3002/", waiting until "load"[22m
+
+
+      27 | test.describe('OMO Agent Dashboard smoke flows', () => {
+      28 |   test('root page and navigation render', async ({ page }) => {
+    > 29 |     await page.goto('/');
+         |                ^
+      30 |     await expect(page.locator('a[href="/"]')).toBeVisible();
+      31 |     await expect(page.locator('a[href="/models"]')).toBeVisible();
+      32 |     await expect(page.locator('a[href="/agents"]')).toBeVisible();
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:29:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-177d1--page-and-navigation-render-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-177d1--page-and-navigation-render-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-177d1--page-and-navigation-render-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3002/
+    Call log:
+    [2m  - navigating to "http://localhost:3002/", waiting until "load"[22m
+
+
+      27 | test.describe('OMO Agent Dashboard smoke flows', () => {
+      28 |   test('root page and navigation render', async ({ page }) => {
+    > 29 |     await page.goto('/');
+         |                ^
+      30 |     await expect(page.locator('a[href="/"]')).toBeVisible();
+      31 |     await expect(page.locator('a[href="/models"]')).toBeVisible();
+      32 |     await expect(page.locator('a[href="/agents"]')).toBeVisible();
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:29:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-177d1--page-and-navigation-render-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-177d1--page-and-navigation-render-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-177d1--page-and-navigation-render-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-177d1--page-and-navigation-render-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dashboard-OMO-Agent-Dashbo-177d1--page-and-navigation-render-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  2) [chromium] › e2e/dashboard.spec.ts:36:3 › OMO Agent Dashboard smoke flows › model library page renders seeded models 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3002/models
+    Call log:
+    [2m  - navigating to "http://localhost:3002/models", waiting until "load"[22m
+
+
+      35 |
+      36 |   test('model library page renders seeded models', async ({ page }) => {
+    > 37 |     await page.goto('/models');
+         |                ^
+      38 |     await expect(page.locator('text=Model Library')).toBeVisible();
+      39 |     await expect(page.locator('text=GPT-4')).toBeVisible();
+      40 |   });
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:37:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-2af66--page-renders-seeded-models-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-2af66--page-renders-seeded-models-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-2af66--page-renders-seeded-models-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3002/models
+    Call log:
+    [2m  - navigating to "http://localhost:3002/models", waiting until "load"[22m
+
+
+      35 |
+      36 |   test('model library page renders seeded models', async ({ page }) => {
+    > 37 |     await page.goto('/models');
+         |                ^
+      38 |     await expect(page.locator('text=Model Library')).toBeVisible();
+      39 |     await expect(page.locator('text=GPT-4')).toBeVisible();
+      40 |   });
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:37:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-2af66--page-renders-seeded-models-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-2af66--page-renders-seeded-models-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-2af66--page-renders-seeded-models-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-2af66--page-renders-seeded-models-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dashboard-OMO-Agent-Dashbo-2af66--page-renders-seeded-models-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[5/7] [chromium] › e2e/dashboard.spec.ts:42:3 › OMO Agent Dashboard smoke flows › agents page opens new agent dialog
+[1A[2K[6/7] [chromium] › e2e/dashboard.spec.ts:50:3 › OMO Agent Dashboard smoke flows › kanban new task dialog exposes richer fields
+[1A[2K[7/7] (retries) [chromium] › e2e/dashboard.spec.ts:42:3 › OMO Agent Dashboard smoke flows › agents page opens new agent dialog (retry #1)
+[1A[2K[8/7] (retries) [chromium] › e2e/dashboard.spec.ts:50:3 › OMO Agent Dashboard smoke flows › kanban new task dialog exposes richer fields (retry #1)
+[1A[2K  3) [chromium] › e2e/dashboard.spec.ts:50:3 › OMO Agent Dashboard smoke flows › kanban new task dialog exposes richer fields 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3001
+    Call log:
+    [2m  - → POST http://localhost:3001/api/agents[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 94[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3001
+        at createAgent (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:12:34)
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:51:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-df660-ialog-exposes-richer-fields-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-df660-ialog-exposes-richer-fields-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-df660-ialog-exposes-richer-fields-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3001
+    Call log:
+    [2m  - → POST http://localhost:3001/api/agents[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 94[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3001
+        at createAgent (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:12:34)
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:51:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-df660-ialog-exposes-richer-fields-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-df660-ialog-exposes-richer-fields-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-df660-ialog-exposes-richer-fields-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-df660-ialog-exposes-richer-fields-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dashboard-OMO-Agent-Dashbo-df660-ialog-exposes-richer-fields-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  4) [chromium] › e2e/dashboard.spec.ts:42:3 › OMO Agent Dashboard smoke flows › agents page opens new agent dialog 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3002/agents
+    Call log:
+    [2m  - navigating to "http://localhost:3002/agents", waiting until "load"[22m
+
+
+      41 |
+      42 |   test('agents page opens new agent dialog', async ({ page }) => {
+    > 43 |     await page.goto('/agents');
+         |                ^
+      44 |     await expect(page.locator('text=Agents')).toBeVisible();
+      45 |     await page.getByRole('button', { name: 'New Agent' }).click();
+      46 |     await expect(page.locator('text=New Agent')).toBeVisible();
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:43:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-73043-page-opens-new-agent-dialog-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-73043-page-opens-new-agent-dialog-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-73043-page-opens-new-agent-dialog-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3002/agents
+    Call log:
+    [2m  - navigating to "http://localhost:3002/agents", waiting until "load"[22m
+
+
+      41 |
+      42 |   test('agents page opens new agent dialog', async ({ page }) => {
+    > 43 |     await page.goto('/agents');
+         |                ^
+      44 |     await expect(page.locator('text=Agents')).toBeVisible();
+      45 |     await page.getByRole('button', { name: 'New Agent' }).click();
+      46 |     await expect(page.locator('text=New Agent')).toBeVisible();
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:43:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-73043-page-opens-new-agent-dialog-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-73043-page-opens-new-agent-dialog-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-73043-page-opens-new-agent-dialog-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-73043-page-opens-new-agent-dialog-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dashboard-OMO-Agent-Dashbo-73043-page-opens-new-agent-dialog-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[9/7] [chromium] › e2e/dashboard.spec.ts:59:3 › OMO Agent Dashboard smoke flows › task detail route renders created task
+[1A[2K[10/7] [chromium] › e2e/dashboard.spec.ts:68:3 › OMO Agent Dashboard smoke flows › project detail route renders created project
+[1A[2K[11/7] (retries) [chromium] › e2e/dashboard.spec.ts:59:3 › OMO Agent Dashboard smoke flows › task detail route renders created task (retry #1)
+[1A[2K[12/7] (retries) [chromium] › e2e/dashboard.spec.ts:68:3 › OMO Agent Dashboard smoke flows › project detail route renders created project (retry #1)
+[1A[2K  5) [chromium] › e2e/dashboard.spec.ts:59:3 › OMO Agent Dashboard smoke flows › task detail route renders created task 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3001
+    Call log:
+    [2m  - → POST http://localhost:3001/api/agents[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 101[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3001
+        at createAgent (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:12:34)
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:60:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-900f1--route-renders-created-task-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-900f1--route-renders-created-task-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-900f1--route-renders-created-task-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3001
+    Call log:
+    [2m  - → POST http://localhost:3001/api/agents[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 101[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3001
+        at createAgent (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:12:34)
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:60:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-900f1--route-renders-created-task-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-900f1--route-renders-created-task-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-900f1--route-renders-created-task-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-900f1--route-renders-created-task-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dashboard-OMO-Agent-Dashbo-900f1--route-renders-created-task-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  6) [chromium] › e2e/dashboard.spec.ts:68:3 › OMO Agent Dashboard smoke flows › project detail route renders created project 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3001
+    Call log:
+    [2m  - → POST http://localhost:3001/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 82[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3001
+        at createProject (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:4:34)
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:69:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-3e095-ute-renders-created-project-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-3e095-ute-renders-created-project-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-3e095-ute-renders-created-project-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3001
+    Call log:
+    [2m  - → POST http://localhost:3001/api/projects[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 82[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3001
+        at createProject (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:4:34)
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:69:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-3e095-ute-renders-created-project-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-3e095-ute-renders-created-project-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-3e095-ute-renders-created-project-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-3e095-ute-renders-created-project-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dashboard-OMO-Agent-Dashbo-3e095-ute-renders-created-project-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K[13/7] [chromium] › e2e/dashboard.spec.ts:75:3 › OMO Agent Dashboard smoke flows › agent detail route renders created agent
+[1A[2K[14/7] (retries) [chromium] › e2e/dashboard.spec.ts:75:3 › OMO Agent Dashboard smoke flows › agent detail route renders created agent (retry #1)
+[1A[2K  7) [chromium] › e2e/dashboard.spec.ts:75:3 › OMO Agent Dashboard smoke flows › agent detail route renders created agent 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3001
+    Call log:
+    [2m  - → POST http://localhost:3001/api/agents[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 102[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3001
+        at createAgent (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:12:34)
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:76:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-7b7d7-route-renders-created-agent-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-7b7d7-route-renders-created-agent-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-7b7d7-route-renders-created-agent-chromium/error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3001
+    Call log:
+    [2m  - → POST http://localhost:3001/api/agents[22m
+    [2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36[22m
+    [2m    - accept: */*[22m
+    [2m    - accept-encoding: gzip,deflate,br[22m
+    [2m    - content-type: application/json[22m
+    [2m    - content-length: 102[22m
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3001
+        at createAgent (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:12:34)
+        at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/e2e/dashboard.spec.ts:76:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-7b7d7-route-renders-created-agent-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-7b7d7-route-renders-created-agent-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/dashboard-OMO-Agent-Dashbo-7b7d7-route-renders-created-agent-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/dashboard-OMO-Agent-Dashbo-7b7d7-route-renders-created-agent-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/dashboard-OMO-Agent-Dashbo-7b7d7-route-renders-created-agent-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  7 failed
+    [chromium] › e2e/dashboard.spec.ts:28:3 › OMO Agent Dashboard smoke flows › root page and navigation render 
+    [chromium] › e2e/dashboard.spec.ts:36:3 › OMO Agent Dashboard smoke flows › model library page renders seeded models 
+    [chromium] › e2e/dashboard.spec.ts:42:3 › OMO Agent Dashboard smoke flows › agents page opens new agent dialog 
+    [chromium] › e2e/dashboard.spec.ts:50:3 › OMO Agent Dashboard smoke flows › kanban new task dialog exposes richer fields 
+    [chromium] › e2e/dashboard.spec.ts:59:3 › OMO Agent Dashboard smoke flows › task detail route renders created task 
+    [chromium] › e2e/dashboard.spec.ts:68:3 › OMO Agent Dashboard smoke flows › project detail route renders created project 
+    [chromium] › e2e/dashboard.spec.ts:75:3 › OMO Agent Dashboard smoke flows › agent detail route renders created agent 

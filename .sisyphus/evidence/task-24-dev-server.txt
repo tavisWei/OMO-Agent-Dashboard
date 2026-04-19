@@ -1,0 +1,130 @@
+
+> omo-agent-dashboard@0.1.0 dev
+> concurrently -n server,client -c blue,green "npm run server" "npm run client"
+
+[client] 
+[client] > omo-agent-dashboard@0.1.0 client
+[client] > vite --port 3002
+[client] 
+[server] 
+[server] > omo-agent-dashboard@0.1.0 server
+[server] > tsx watch src/server/index.ts
+[server] 
+[client] 
+[client]   VITE v8.0.8  ready in 1267 ms
+[client] 
+[client]   ➜  Local:   http://localhost:3002/
+[client]   ➜  Network: use --host to expose
+[server] Database initialized
+[server] Found 1 agents in OMO config
+[server]   - Synced agent: Updated Agent (gpt-4)
+[server] OMO config sync completed
+[server] Server running on http://localhost:3001
+[server] [2026-04-14T07:03:21.302Z] GET /api/projects
+[server] [2026-04-14T07:03:21.316Z] GET /api/tasks
+[server] [2026-04-14T07:03:21.319Z] GET /api/agents
+[server] [WS] Client connected (1 total)
+[server] [2026-04-14T07:03:21.384Z] GET /api/projects
+[server] [WS] Client connected (2 total)
+[server] [2026-04-14T07:03:21.389Z] GET /api/tasks
+[server] [2026-04-14T07:03:21.391Z] GET /api/agents
+[server] [WS] Client disconnected (1 total)
+[server] [WS] Client disconnected (0 total)
+[server] [2026-04-14T07:03:25.606Z] GET /api/projects
+[server] [2026-04-14T07:03:25.607Z] GET /api/models
+[server] [2026-04-14T07:03:25.622Z] GET /api/projects
+[server] [2026-04-14T07:03:25.636Z] GET /api/models
+[server] [WS] Client connected (1 total)
+[server] [WS] Client connected (2 total)
+[server] [WS] Client disconnected (1 total)
+[server] [WS] Client disconnected (0 total)
+[server] [WS] Client connected (1 total)
+[server] [WS] Client connected (2 total)
+[server] [WS] Client connected (3 total)
+[server] [WS] Client disconnected (2 total)
+[server] [WS] Client connected (3 total)
+[server] [2026-04-14T07:03:28.556Z] GET /api/projects
+[server] [2026-04-14T07:03:28.564Z] GET /api/agents
+[server] [2026-04-14T07:03:28.574Z] GET /api/projects
+[server] [2026-04-14T07:03:28.583Z] GET /api/agents
+[server] [2026-04-14T07:03:28.605Z] GET /api/projects
+[server] [2026-04-14T07:03:28.622Z] GET /api/projects
+[server] [2026-04-14T07:03:31.044Z] GET /api/models
+[server] [2026-04-14T07:03:31.089Z] GET /api/projects
+[server] [WS] Client connected (4 total)
+[server] [WS] Client disconnected (3 total)
+[server] [WS] Client disconnected (2 total)
+[server] [WS] Client disconnected (1 total)
+[server] [WS] Client disconnected (0 total)
+[server] [2026-04-14T07:03:33.586Z] POST /api/agents
+[server] [2026-04-14T07:03:34.913Z] GET /api/projects
+[server] [2026-04-14T07:03:34.969Z] GET /api/tasks
+[server] [2026-04-14T07:03:34.978Z] GET /api/agents
+[server] [2026-04-14T07:03:35.022Z] GET /api/projects
+[server] [2026-04-14T07:03:35.026Z] GET /api/tasks
+[server] [2026-04-14T07:03:35.037Z] GET /api/agents
+[server] [WS] Client connected (1 total)
+[server] [WS] Client connected (2 total)
+[server] [WS] Client disconnected (1 total)
+[server] [WS] Client disconnected (0 total)
+[server] [2026-04-14T07:03:38.353Z] POST /api/agents
+[server] [2026-04-14T07:03:38.367Z] POST /api/tasks
+[server] [2026-04-14T07:03:39.859Z] GET /api/projects
+[server] [2026-04-14T07:03:39.886Z] GET /api/tasks/20
+[server] [2026-04-14T07:03:39.937Z] GET /api/tasks/20
+[server] [2026-04-14T07:03:39.945Z] GET /api/projects
+[server] [WS] Client connected (1 total)
+[server] [WS] Client connected (2 total)
+[server] [WS] Client disconnected (1 total)
+[server] [WS] Client disconnected (0 total)
+[server] [2026-04-14T07:03:41.465Z] POST /api/projects
+[server] [2026-04-14T07:03:42.868Z] GET /api/projects
+[server] [2026-04-14T07:03:42.881Z] GET /api/projects
+[server] [2026-04-14T07:03:42.885Z] GET /api/agents
+[server] [2026-04-14T07:03:42.903Z] GET /api/tasks
+[server] [2026-04-14T07:03:42.914Z] GET /api/projects
+[server] [2026-04-14T07:03:42.931Z] GET /api/projects
+[server] [2026-04-14T07:03:42.970Z] GET /api/agents
+[server] [2026-04-14T07:03:42.984Z] GET /api/tasks
+[server] [WS] Client connected (1 total)
+[server] [WS] Client connected (2 total)
+[server] [2026-04-14T07:03:43.234Z] GET /api/tasks
+[server] [2026-04-14T07:03:43.245Z] GET /api/agents
+[server] [2026-04-14T07:03:43.277Z] GET /api/tasks
+[server] [2026-04-14T07:03:43.293Z] GET /api/agents
+[server] [WS] Client disconnected (1 total)
+[server] [WS] Client disconnected (0 total)
+[server] [2026-04-14T07:03:44.933Z] POST /api/agents
+[server] [2026-04-14T07:03:46.634Z] GET /api/projects
+[server] [2026-04-14T07:03:46.656Z] GET /api/tasks
+[server] [2026-04-14T07:03:46.666Z] GET /api/cost-records
+[server] [2026-04-14T07:03:46.678Z] GET /api/agents
+[server] [2026-04-14T07:03:46.696Z] GET /api/activity-logs
+[server] Error getting activity logs: ReferenceError: require is not defined
+[server]     at getActivityLogsByAgentWithName (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/src/server/routes/activity-logs.ts:92:31)
+[server]     at <anonymous> (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/src/server/routes/activity-logs.ts:39:14)
+[server]     at Layer.handle [as handle_request] (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/node_modules/express/lib/router/layer.js:95:5)
+[server]     at next (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/node_modules/express/lib/router/route.js:149:13)
+[server]     at Route.dispatch (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/node_modules/express/lib/router/route.js:119:3)
+[server]     at Layer.handle [as handle_request] (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/node_modules/express/lib/router/layer.js:95:5)
+[server]     at /Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/node_modules/express/lib/router/index.js:284:15
+[server]     at Function.process_params (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/node_modules/express/lib/router/index.js:346:12)
+[server]     at next (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/node_modules/express/lib/router/index.js:280:10)
+[server]     at Function.handle (/Users/mrweij/Dev/vibe_coding/opencode/OMO-Agent-Dashboard/OMO-Agent-Dashboard/node_modules/express/lib/router/index.js:175:3)
+[server] [2026-04-14T07:03:46.731Z] GET /api/agents
+[server] [2026-04-14T07:03:46.734Z] GET /api/projects
+[server] [2026-04-14T07:03:46.737Z] GET /api/tasks
+[server] [2026-04-14T07:03:46.749Z] GET /api/cost-records
+[server] [WS] Client connected (1 total)
+[server] [WS] Client connected (2 total)
+[server] [WS] Client disconnected (1 total)
+[server] [WS] Client disconnected (0 total)
+[client] 15:03:48 [vite] (client) page reload playwright-report/index.html
+[client] 15:03:48 [vite] (client) page reload playwright-report/trace/index.html
+[client] 15:03:48 [vite] (client) page reload playwright-report/trace/snapshot.html
+[client] 15:03:48 [vite] (client) page reload playwright-report/trace/uiMode.html
+[client] 15:03:48 [vite] (client) page reload playwright-report/index.html
+[client] 15:03:48 [vite] (client) hmr update /src/index.css
+[client] npm run client exited with code 143
+[server] 15:03:48 [tsx] Previous process hasn't exited yet. Force killing...
+[server] npm run server exited with code 143

@@ -1,0 +1,704 @@
+{
+  "project": {
+    "status": 201,
+    "body": {
+      "id": 2,
+      "name": "Task 15 Verification",
+      "description": "Orchestration API verification",
+      "created_at": "2026-04-14 02:20:09",
+      "updated_at": "2026-04-14 02:20:09"
+    }
+  },
+  "agents": [
+    {
+      "status": 201,
+      "body": {
+        "id": 18,
+        "name": "Verifier Agent 1",
+        "project_id": 2,
+        "model_id": null,
+        "model": "gpt-4",
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "max_tokens": 4096,
+        "status": "idle",
+        "last_heartbeat": null,
+        "config_path": null,
+        "source": "ui_created",
+        "created_at": "2026-04-14 02:20:09",
+        "updated_at": "2026-04-14 02:20:09"
+      }
+    },
+    {
+      "status": 201,
+      "body": {
+        "id": 19,
+        "name": "Verifier Agent 2",
+        "project_id": 2,
+        "model_id": null,
+        "model": "gpt-4",
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "max_tokens": 4096,
+        "status": "idle",
+        "last_heartbeat": null,
+        "config_path": null,
+        "source": "ui_created",
+        "created_at": "2026-04-14 02:20:09",
+        "updated_at": "2026-04-14 02:20:09"
+      }
+    }
+  ],
+  "sequential": {
+    "taskId": 10,
+    "start": {
+      "status": 201,
+      "body": {
+        "action": "started",
+        "task": {
+          "id": 10,
+          "project_id": 2,
+          "agent_id": 18,
+          "parent_task_id": null,
+          "title": "Sequential orchestration task",
+          "description": "Sequential orchestration task",
+          "status": "in_progress",
+          "position": 0,
+          "depends_on": [],
+          "priority": "medium",
+          "labels": [],
+          "due_date": null,
+          "estimated_tokens": null,
+          "assigned_agents": [
+            18,
+            19
+          ],
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "orchestration": {
+          "id": 1,
+          "task_id": 10,
+          "pattern": "sequential",
+          "agent_order": [
+            {
+              "agent_id": 18,
+              "role": "lead",
+              "label": "Verifier Agent 1"
+            },
+            {
+              "agent_id": 19,
+              "role": "worker",
+              "label": "Verifier Agent 2"
+            }
+          ],
+          "current_step": 0,
+          "status": "running",
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "steps": [
+          {
+            "agent_id": 18,
+            "role": "lead",
+            "label": "Verifier Agent 1",
+            "index": 0,
+            "state": "active",
+            "is_current": true,
+            "output_key": null,
+            "input_from_step": null
+          },
+          {
+            "agent_id": 19,
+            "role": "worker",
+            "label": "Verifier Agent 2",
+            "index": 1,
+            "state": "pending",
+            "is_current": false,
+            "output_key": null,
+            "input_from_step": null
+          }
+        ],
+        "progress": {
+          "total_steps": 2,
+          "completed_steps": 0,
+          "active_steps": 1,
+          "pending_steps": 1,
+          "completion_percentage": 0
+        },
+        "available_actions": [
+          "advance",
+          "fail"
+        ]
+      }
+    },
+    "state": {
+      "status": 200,
+      "body": {
+        "task": {
+          "id": 10,
+          "project_id": 2,
+          "agent_id": 18,
+          "parent_task_id": null,
+          "title": "Sequential orchestration task",
+          "description": "Sequential orchestration task",
+          "status": "in_progress",
+          "position": 0,
+          "depends_on": [],
+          "priority": "medium",
+          "labels": [],
+          "due_date": null,
+          "estimated_tokens": null,
+          "assigned_agents": [
+            18,
+            19
+          ],
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "orchestration": {
+          "id": 1,
+          "task_id": 10,
+          "pattern": "sequential",
+          "agent_order": [
+            {
+              "agent_id": 18,
+              "role": "lead",
+              "label": "Verifier Agent 1"
+            },
+            {
+              "agent_id": 19,
+              "role": "worker",
+              "label": "Verifier Agent 2"
+            }
+          ],
+          "current_step": 0,
+          "status": "running",
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "steps": [
+          {
+            "agent_id": 18,
+            "role": "lead",
+            "label": "Verifier Agent 1",
+            "index": 0,
+            "state": "active",
+            "is_current": true,
+            "output_key": null,
+            "input_from_step": null
+          },
+          {
+            "agent_id": 19,
+            "role": "worker",
+            "label": "Verifier Agent 2",
+            "index": 1,
+            "state": "pending",
+            "is_current": false,
+            "output_key": null,
+            "input_from_step": null
+          }
+        ],
+        "progress": {
+          "total_steps": 2,
+          "completed_steps": 0,
+          "active_steps": 1,
+          "pending_steps": 1,
+          "completion_percentage": 0
+        },
+        "available_actions": [
+          "advance",
+          "fail"
+        ]
+      }
+    }
+  },
+  "parallel": {
+    "taskId": 11,
+    "start": {
+      "status": 201,
+      "body": {
+        "action": "started",
+        "task": {
+          "id": 11,
+          "project_id": 2,
+          "agent_id": 18,
+          "parent_task_id": null,
+          "title": "Parallel orchestration task",
+          "description": "Parallel orchestration task",
+          "status": "in_progress",
+          "position": 1,
+          "depends_on": [],
+          "priority": "medium",
+          "labels": [],
+          "due_date": null,
+          "estimated_tokens": null,
+          "assigned_agents": [
+            18,
+            19
+          ],
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "orchestration": {
+          "id": 2,
+          "task_id": 11,
+          "pattern": "parallel",
+          "agent_order": [
+            {
+              "agent_id": 18,
+              "role": "lead",
+              "label": "Verifier Agent 1"
+            },
+            {
+              "agent_id": 19,
+              "role": "worker",
+              "label": "Verifier Agent 2"
+            }
+          ],
+          "current_step": 0,
+          "status": "running",
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "steps": [
+          {
+            "agent_id": 18,
+            "role": "lead",
+            "label": "Verifier Agent 1",
+            "index": 0,
+            "state": "active",
+            "is_current": true,
+            "output_key": null,
+            "input_from_step": null
+          },
+          {
+            "agent_id": 19,
+            "role": "worker",
+            "label": "Verifier Agent 2",
+            "index": 1,
+            "state": "active",
+            "is_current": true,
+            "output_key": null,
+            "input_from_step": null
+          }
+        ],
+        "progress": {
+          "total_steps": 2,
+          "completed_steps": 0,
+          "active_steps": 2,
+          "pending_steps": 0,
+          "completion_percentage": 0
+        },
+        "available_actions": [
+          "advance",
+          "fail"
+        ]
+      }
+    },
+    "advance_one": {
+      "status": 200,
+      "body": {
+        "action": "advanced",
+        "task": {
+          "id": 11,
+          "project_id": 2,
+          "agent_id": 18,
+          "parent_task_id": null,
+          "title": "Parallel orchestration task",
+          "description": "Parallel orchestration task",
+          "status": "in_progress",
+          "position": 1,
+          "depends_on": [],
+          "priority": "medium",
+          "labels": [],
+          "due_date": null,
+          "estimated_tokens": null,
+          "assigned_agents": [
+            18,
+            19
+          ],
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "orchestration": {
+          "id": 2,
+          "task_id": 11,
+          "pattern": "parallel",
+          "agent_order": [
+            {
+              "agent_id": 18,
+              "role": "lead",
+              "label": "Verifier Agent 1"
+            },
+            {
+              "agent_id": 19,
+              "role": "worker",
+              "label": "Verifier Agent 2"
+            }
+          ],
+          "current_step": 1,
+          "status": "step_complete",
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "steps": [
+          {
+            "agent_id": 18,
+            "role": "lead",
+            "label": "Verifier Agent 1",
+            "index": 0,
+            "state": "completed",
+            "is_current": false,
+            "output_key": null,
+            "input_from_step": null
+          },
+          {
+            "agent_id": 19,
+            "role": "worker",
+            "label": "Verifier Agent 2",
+            "index": 1,
+            "state": "active",
+            "is_current": true,
+            "output_key": null,
+            "input_from_step": null
+          }
+        ],
+        "progress": {
+          "total_steps": 2,
+          "completed_steps": 1,
+          "active_steps": 1,
+          "pending_steps": 0,
+          "completion_percentage": 50
+        },
+        "available_actions": [
+          "advance",
+          "fail"
+        ]
+      }
+    },
+    "advance_two": {
+      "status": 200,
+      "body": {
+        "action": "completed",
+        "task": {
+          "id": 11,
+          "project_id": 2,
+          "agent_id": 18,
+          "parent_task_id": null,
+          "title": "Parallel orchestration task",
+          "description": "Parallel orchestration task",
+          "status": "done",
+          "position": 1,
+          "depends_on": [],
+          "priority": "medium",
+          "labels": [],
+          "due_date": null,
+          "estimated_tokens": null,
+          "assigned_agents": [
+            18,
+            19
+          ],
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "orchestration": {
+          "id": 2,
+          "task_id": 11,
+          "pattern": "parallel",
+          "agent_order": [
+            {
+              "agent_id": 18,
+              "role": "lead",
+              "label": "Verifier Agent 1"
+            },
+            {
+              "agent_id": 19,
+              "role": "worker",
+              "label": "Verifier Agent 2"
+            }
+          ],
+          "current_step": 2,
+          "status": "completed",
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "steps": [
+          {
+            "agent_id": 18,
+            "role": "lead",
+            "label": "Verifier Agent 1",
+            "index": 0,
+            "state": "completed",
+            "is_current": false,
+            "output_key": null,
+            "input_from_step": null
+          },
+          {
+            "agent_id": 19,
+            "role": "worker",
+            "label": "Verifier Agent 2",
+            "index": 1,
+            "state": "completed",
+            "is_current": false,
+            "output_key": null,
+            "input_from_step": null
+          }
+        ],
+        "progress": {
+          "total_steps": 2,
+          "completed_steps": 2,
+          "active_steps": 0,
+          "pending_steps": 0,
+          "completion_percentage": 100
+        },
+        "available_actions": [
+          "start"
+        ]
+      }
+    },
+    "state": {
+      "status": 200,
+      "body": {
+        "task": {
+          "id": 11,
+          "project_id": 2,
+          "agent_id": 18,
+          "parent_task_id": null,
+          "title": "Parallel orchestration task",
+          "description": "Parallel orchestration task",
+          "status": "done",
+          "position": 1,
+          "depends_on": [],
+          "priority": "medium",
+          "labels": [],
+          "due_date": null,
+          "estimated_tokens": null,
+          "assigned_agents": [
+            18,
+            19
+          ],
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "orchestration": {
+          "id": 2,
+          "task_id": 11,
+          "pattern": "parallel",
+          "agent_order": [
+            {
+              "agent_id": 18,
+              "role": "lead",
+              "label": "Verifier Agent 1"
+            },
+            {
+              "agent_id": 19,
+              "role": "worker",
+              "label": "Verifier Agent 2"
+            }
+          ],
+          "current_step": 2,
+          "status": "completed",
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "steps": [
+          {
+            "agent_id": 18,
+            "role": "lead",
+            "label": "Verifier Agent 1",
+            "index": 0,
+            "state": "completed",
+            "is_current": false,
+            "output_key": null,
+            "input_from_step": null
+          },
+          {
+            "agent_id": 19,
+            "role": "worker",
+            "label": "Verifier Agent 2",
+            "index": 1,
+            "state": "completed",
+            "is_current": false,
+            "output_key": null,
+            "input_from_step": null
+          }
+        ],
+        "progress": {
+          "total_steps": 2,
+          "completed_steps": 2,
+          "active_steps": 0,
+          "pending_steps": 0,
+          "completion_percentage": 100
+        },
+        "available_actions": [
+          "start"
+        ]
+      }
+    }
+  },
+  "pipeline": {
+    "taskId": 12,
+    "start": {
+      "status": 201,
+      "body": {
+        "action": "started",
+        "task": {
+          "id": 12,
+          "project_id": 2,
+          "agent_id": 18,
+          "parent_task_id": null,
+          "title": "Pipeline orchestration task",
+          "description": "Pipeline orchestration task",
+          "status": "in_progress",
+          "position": 2,
+          "depends_on": [],
+          "priority": "medium",
+          "labels": [],
+          "due_date": null,
+          "estimated_tokens": null,
+          "assigned_agents": [
+            18,
+            19
+          ],
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "orchestration": {
+          "id": 3,
+          "task_id": 12,
+          "pattern": "pipeline",
+          "agent_order": [
+            {
+              "agent_id": 18,
+              "role": "lead",
+              "label": "Verifier Agent 1"
+            },
+            {
+              "agent_id": 19,
+              "role": "worker",
+              "label": "Verifier Agent 2"
+            }
+          ],
+          "current_step": 0,
+          "status": "running",
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "steps": [
+          {
+            "agent_id": 18,
+            "role": "lead",
+            "label": "Verifier Agent 1",
+            "index": 0,
+            "state": "active",
+            "is_current": true,
+            "output_key": "pipeline_step_1_output",
+            "input_from_step": null
+          },
+          {
+            "agent_id": 19,
+            "role": "worker",
+            "label": "Verifier Agent 2",
+            "index": 1,
+            "state": "pending",
+            "is_current": false,
+            "output_key": "pipeline_step_2_output",
+            "input_from_step": 0
+          }
+        ],
+        "progress": {
+          "total_steps": 2,
+          "completed_steps": 0,
+          "active_steps": 1,
+          "pending_steps": 1,
+          "completion_percentage": 0
+        },
+        "available_actions": [
+          "advance",
+          "fail"
+        ]
+      }
+    },
+    "state": {
+      "status": 200,
+      "body": {
+        "task": {
+          "id": 12,
+          "project_id": 2,
+          "agent_id": 18,
+          "parent_task_id": null,
+          "title": "Pipeline orchestration task",
+          "description": "Pipeline orchestration task",
+          "status": "in_progress",
+          "position": 2,
+          "depends_on": [],
+          "priority": "medium",
+          "labels": [],
+          "due_date": null,
+          "estimated_tokens": null,
+          "assigned_agents": [
+            18,
+            19
+          ],
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "orchestration": {
+          "id": 3,
+          "task_id": 12,
+          "pattern": "pipeline",
+          "agent_order": [
+            {
+              "agent_id": 18,
+              "role": "lead",
+              "label": "Verifier Agent 1"
+            },
+            {
+              "agent_id": 19,
+              "role": "worker",
+              "label": "Verifier Agent 2"
+            }
+          ],
+          "current_step": 0,
+          "status": "running",
+          "created_at": "2026-04-14 02:20:09",
+          "updated_at": "2026-04-14 02:20:09"
+        },
+        "steps": [
+          {
+            "agent_id": 18,
+            "role": "lead",
+            "label": "Verifier Agent 1",
+            "index": 0,
+            "state": "active",
+            "is_current": true,
+            "output_key": "pipeline_step_1_output",
+            "input_from_step": null
+          },
+          {
+            "agent_id": 19,
+            "role": "worker",
+            "label": "Verifier Agent 2",
+            "index": 1,
+            "state": "pending",
+            "is_current": false,
+            "output_key": "pipeline_step_2_output",
+            "input_from_step": 0
+          }
+        ],
+        "progress": {
+          "total_steps": 2,
+          "completed_steps": 0,
+          "active_steps": 1,
+          "pending_steps": 1,
+          "completion_percentage": 0
+        },
+        "available_actions": [
+          "advance",
+          "fail"
+        ]
+      }
+    }
+  }
+}

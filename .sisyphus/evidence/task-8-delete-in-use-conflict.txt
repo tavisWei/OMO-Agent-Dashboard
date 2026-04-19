@@ -1,0 +1,7 @@
+DELETE /api/models/1
+
+Status: 409 Conflict
+Response:
+{"error":"Model is assigned to one or more agents"}
+
+Verified deletion is blocked when an agent references the model.

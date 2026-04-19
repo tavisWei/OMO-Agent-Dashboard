@@ -1,0 +1,9 @@
+DELETE /api/agents/8 verification
+Date: 2026-04-13
+Expected: block deletion for source=omo_config
+Status: 403 Forbidden
+Response:
+{"error":"OMO config agents cannot be deleted"}
+
+Server log excerpt:
+[2026-04-13T11:38:39.259Z] DELETE /api/agents/8
