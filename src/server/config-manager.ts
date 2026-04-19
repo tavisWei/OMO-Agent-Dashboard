@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { applyEdits, modify, parse } from 'jsonc-parser';
 import type { DashboardConfigSnapshot } from '../types/domain.js';
+import { getConfigDir, getOpenAgentPath, getOpencodePath, getOmoPath } from '../utils/paths.js';
 
 type JsonObject = Record<string, unknown>;
 
@@ -31,15 +31,14 @@ export interface AgentModelUpdate {
 export type RawConfigTarget = 'openagent' | 'opencode' | 'omo';
 
 function getBaseConfigDir(): string {
-  return path.join(os.homedir(), '.config', 'opencode');
+  return getConfigDir();
 }
 
 export function getConfigPaths(): ConfigPaths {
-  const baseDir = getBaseConfigDir();
   return {
-    openAgentPath: process.env.OH_MY_OPENAGENT_CONFIG_PATH || path.join(baseDir, 'oh-my-openagent.json'),
-    opencodePath: process.env.OPENCODE_CONFIG_PATH || path.join(baseDir, 'opencode.json'),
-    omoPath: process.env.OH_MY_OPENCODE_CONFIG_PATH || path.join(baseDir, 'oh-my-opencode.jsonc'),
+    openAgentPath: getOpenAgentPath(),
+    opencodePath: getOpencodePath(),
+    omoPath: getOmoPath(),
   };
 }
 

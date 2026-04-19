@@ -7,11 +7,8 @@
 
 import { readFileSync, existsSync } from 'fs';
 import { parse as parseJsonc } from 'jsonc-parser';
-import os from 'os';
+import { getOmoPath } from '../utils/paths.js';
 
-/**
- * Agent configuration interface (OMO v3.x format)
- */
 export interface AgentConfig {
   name: string;
   model?: string;
@@ -21,17 +18,11 @@ export interface AgentConfig {
   description?: string;
 }
 
-/**
- * OMO Configuration file structure
- */
 export interface OMOConfig {
   agents?: AgentConfig[];
   [key: string]: unknown;
 }
 
-/**
- * Result of reading OMO configuration
- */
 export interface ReadConfigResult {
   success: boolean;
   config?: OMOConfig;
@@ -39,13 +30,8 @@ export interface ReadConfigResult {
   error?: string;
 }
 
-/**
- * Get the default OMO configuration file path
- * Resolves ~ to user home directory
- */
 export function getConfigPath(): string {
-  const homeDir = os.homedir();
-  return `${homeDir}/.config/opencode/oh-my-opencode.jsonc`;
+  return getOmoPath();
 }
 
 /**

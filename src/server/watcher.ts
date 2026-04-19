@@ -1,8 +1,8 @@
 import { statSync } from 'node:fs';
 import { EventEmitter } from 'node:events';
-import path from 'node:path';
 import chokidar, { type FSWatcher } from 'chokidar';
 import { getConfigPaths } from './config-manager.js';
+import { getDbPath } from '../utils/paths.js';
 
 const events = new EventEmitter();
 let watcher: FSWatcher | null = null;
@@ -10,7 +10,7 @@ let pollingTimer: NodeJS.Timeout | null = null;
 let lastWalSignature = '';
 
 function getWalPath(): string {
-  const basePath = process.env.OPENCODE_DB_PATH || path.join(process.env.HOME ?? '', '.local', 'share', 'opencode', 'opencode.db');
+  const basePath = process.env.OPENCODE_DB_PATH || getDbPath();
   return `${basePath}-wal`;
 }
 

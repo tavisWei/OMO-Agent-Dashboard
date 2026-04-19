@@ -7,8 +7,14 @@ interface SettingsState {
   themePreference: ThemePreference;
   setThemePreference: (theme: ThemePreference) => void;
 
-  omoConfigPath: string;
-  setOmoConfigPath: (path: string) => void;
+  customOpenAgentPath: string;
+  setCustomOpenAgentPath: (path: string) => void;
+  customOpencodePath: string;
+  setCustomOpencodePath: (path: string) => void;
+  customOmoPath: string;
+  setCustomOmoPath: (path: string) => void;
+  customDbPath: string;
+  setCustomDbPath: (path: string) => void;
 
   apiKey: string;
   setApiKey: (key: string) => void;
@@ -22,8 +28,14 @@ export const useSettingsStore = create<SettingsState>()(
       themePreference: 'dark',
       setThemePreference: (themePreference) => set({ themePreference }),
 
-      omoConfigPath: '~/.omo/config.yaml',
-      setOmoConfigPath: (omoConfigPath) => set({ omoConfigPath }),
+      customOpenAgentPath: '',
+      setCustomOpenAgentPath: (customOpenAgentPath) => set({ customOpenAgentPath }),
+      customOpencodePath: '',
+      setCustomOpencodePath: (customOpencodePath) => set({ customOpencodePath }),
+      customOmoPath: '',
+      setCustomOmoPath: (customOmoPath) => set({ customOmoPath }),
+      customDbPath: '',
+      setCustomDbPath: (customDbPath) => set({ customDbPath }),
 
       apiKey: '',
       setApiKey: (apiKey) => set({ apiKey }),

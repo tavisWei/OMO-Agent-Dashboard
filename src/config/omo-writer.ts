@@ -6,8 +6,8 @@
  */
 
 import { writeFileSync, existsSync, mkdirSync } from 'fs';
-import os from 'os';
 import { AgentConfig, OMOConfig, getConfigPath } from './omo-reader.js';
+import { getConfigDir } from '../utils/paths.js';
 
 /**
  * Result of saving OMO configuration
@@ -52,7 +52,7 @@ export function saveAgentConfig(agent: AgentConfig, configPath?: string): SaveCo
         config.agents = [agent];
       }
     } else {
-      const dir = `${os.homedir()}/.config/opencode`;
+      const dir = getConfigDir();
       if (!existsSync(dir)) {
         mkdirSync(dir, { recursive: true });
       }
@@ -85,7 +85,7 @@ export function saveAllAgents(agents: AgentConfig[], configPath?: string): SaveC
   const path = configPath || getConfigPath();
 
   try {
-    const dir = `${os.homedir()}/.config/opencode`;
+    const dir = getConfigDir();
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }

@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { existsSync, readFileSync } from 'node:fs';
+import { parse as parseJsonc } from 'jsonc-parser';
 import {
   getConfigSnapshot,
   getRawConfig,
@@ -17,8 +19,58 @@ import {
   deleteConfigVersion,
   type RawConfigTarget,
 } from '../config-manager.js';
+import { getAllPaths } from '../../utils/paths.js';
 
 const router = Router();
+
+router.get('/paths', (_req, res) => {
+  const paths = getAllPaths();
+  res.json(paths);
+});
+
+router.post('/validate', (req, res) => {
+  const { path: filePath, type } = req.body ?? {};
+
+  if (typeof filePath !== 'string' || filePath.trim().length === 0) {
+    return res.status(400).json({ error: 'path is required' });
+  }
+
+  if (!['openagent', 'opencode', 'omo'].includes(type)) {
+    return res.status(400).json({ error: 'invalid type' });
+  }
+
+  const result = {
+    valid: false,
+    exists: false,
+    readable: false,
+    parseable: false,
+    error: undefined as string | undefined,
+  };
+
+  if (!existsSync(filePath)) {
+    result.error = 'File not found';
+    return res.json(result);
+  }
+
+  result.exists = true;
+
+  try {
+    const content = readFileSync(filePath, 'utf-8');
+    result.readable = true;
+
+    if (type === 'omo') {
+      parseJsonc(content);
+    } else {
+      JSON.parse(content);
+    }
+    result.parseable = true;
+    result.valid = true;
+  } catch (error) {
+    result.error = error instanceof Error ? error.message : String(error);
+  }
+
+  res.json(result);
+});
 
 router.get('/', (_req, res) => {
   const snapshot = getConfigSnapshot();

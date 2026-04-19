@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore, ThemePreference, getActualTheme } from '../stores/settingsStore';
 import { useThemeStore } from '../stores/themeStore';
@@ -48,9 +48,24 @@ function Select({ value, onChange, options, label }: { value: string; onChange: 
 
 export function SettingsPage() {
   const { t } = useTranslation();
-  const { themePreference, setThemePreference, appVersion } = useSettingsStore();
+  const {
+    themePreference, setThemePreference, appVersion,
+    customOpenAgentPath, setCustomOpenAgentPath,
+    customOpencodePath, setCustomOpencodePath,
+    customOmoPath, setCustomOmoPath,
+    customDbPath, setCustomDbPath,
+  } = useSettingsStore();
   const { theme: actualTheme, setTheme } = useThemeStore();
   const [themeTouched, setThemeTouched] = useState(false);
+  const [systemPaths, setSystemPaths] = useState<Record<string, string>>({});
+  const [validationResults, setValidationResults] = useState<Record<string, { valid: boolean; error?: string }>>({});
+
+  useEffect(() => {
+    fetch('/api/config/paths')
+      .then(res => res.json())
+      .then(data => setSystemPaths(data))
+      .catch(() => setSystemPaths({}));
+  }, []);
 
   const themeOptions = [
     { value: 'light', label: t('settings.light') },
@@ -64,6 +79,39 @@ export function SettingsPage() {
     const actual = getActualTheme(pref);
     setTheme(actual);
   };
+
+  const validatePath = async (path: string, type: string, key: string) => {
+    if (!path.trim()) {
+      setValidationResults(prev => ({ ...prev, [key]: { valid: true } }));
+      return;
+    }
+    try {
+      const res = await fetch('/api/config/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path, type }),
+      });
+      const result = await res.json();
+      setValidationResults(prev => ({ ...prev, [key]: result }));
+    } catch {
+      setValidationResults(prev => ({ ...prev, [key]: { valid: false, error: 'Validation failed' } }));
+    }
+  };
+
+  const resetPaths = () => {
+    setCustomOpenAgentPath('');
+    setCustomOpencodePath('');
+    setCustomOmoPath('');
+    setCustomDbPath('');
+    setValidationResults({});
+  };
+
+  const pathInputs = [
+    { key: 'openAgent', label: 'OpenAgent Config', type: 'openagent', value: customOpenAgentPath, setValue: setCustomOpenAgentPath, systemPath: systemPaths.openAgentPath },
+    { key: 'opencode', label: 'Opencode Config', type: 'opencode', value: customOpencodePath, setValue: setCustomOpencodePath, systemPath: systemPaths.opencodePath },
+    { key: 'omo', label: 'OMO Config', type: 'omo', value: customOmoPath, setValue: setCustomOmoPath, systemPath: systemPaths.omoPath },
+    { key: 'db', label: 'Database', type: 'opencode', value: customDbPath, setValue: setCustomDbPath, systemPath: systemPaths.dbPath },
+  ];
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -94,6 +142,48 @@ export function SettingsPage() {
             {t('common.success')}
           </div>
         ) : null}
+      </SettingsSection>
+
+      <SettingsSection title="Path Configuration" description="Configure custom paths for config files and database. Leave empty to use system defaults.">
+        <div className="space-y-4">
+          {pathInputs.map(({ key, label, type, value, setValue, systemPath }) => (
+            <div key={key} className="space-y-1">
+              <label htmlFor={`path-input-${key}`} className="text-sm font-medium text-[var(--color-text)]">{label}</label>
+              <div className="flex gap-2">
+                <input
+                  id={`path-input-${key}`}
+                  type="text"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  placeholder={systemPath || `Default ${label} path`}
+                  className="flex-1 bg-[var(--color-bg-tertiary)] text-[var(--color-text)] border border-[var(--color-border)] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => validatePath(value, type, key)}
+                  className="px-3 py-2 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-md text-sm text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]"
+                >
+                  Validate
+                </button>
+              </div>
+              {systemPath && (
+                <p className="text-xs text-[var(--color-text-secondary)]">Default: {systemPath}</p>
+              )}
+              {validationResults[key] && (
+                <p className={`text-xs ${validationResults[key].valid ? 'text-green-500' : 'text-red-500'}`}>
+                  {validationResults[key].valid ? 'Valid' : validationResults[key].error || 'Invalid'}
+                </p>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={resetPaths}
+            className="w-full px-4 py-2 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-md text-sm text-[var(--color-text)] hover:bg-[var(--color-bg-secondary)]"
+          >
+            Reset to Defaults
+          </button>
+        </div>
       </SettingsSection>
 
       <SettingsSection title={t('settings.about')}>
