@@ -92,3 +92,28 @@ export interface OpenCodeSessionQuery {
   limit?: number;
   offset?: number;
 }
+
+export type PartType = 'text' | 'tool_call' | 'tool_result' | 'thinking' | 'file' | 'step_start';
+
+export interface PartRow {
+  id: string;
+  message_id: string;
+  session_id: string;
+  time_created: number;
+  time_updated: number;
+  data: string;
+}
+
+export interface PartData {
+  type: PartType;
+  text?: string;
+  tool?: string;
+  input?: Record<string, unknown>;
+  tool_id?: string;
+  output?: string;
+  isError?: boolean;
+  thinking?: string;
+  path?: string;
+  content?: string;
+  label?: string;
+}

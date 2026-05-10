@@ -10,10 +10,14 @@ import tasksRouter from './routes/tasks.js';
 import costRouter from './routes/cost.js';
 import activityLogsRouter from './routes/activity-logs.js';
 import cleanupRouter from './routes/cleanup.js';
+import analyticsRouter from './routes/analytics.js';
 import tmuxRouter from './routes/tmux.js';
 import { initializeWebSocketServer } from './websocket.js';
+import { startPollingOpenCodeDB, stopPollingOpenCodeDB } from './polling.js';
 import { agentStatusMonitor } from './agentStatus.js';
 import { cleanupHistoricalData } from '../db/cleanup.js';
+import { getOpenCodeProjects } from './opencode-reader.js';
+import { getDatabaseSync } from '../db/index.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 const execAsync = promisify(exec);
@@ -44,6 +48,7 @@ app.use('/api/tasks', tasksRouter);
 app.use('/api/cost-records', costRouter);
 app.use('/api/activity-logs', activityLogsRouter);
 app.use('/api/cleanup', cleanupRouter);
+app.use('/api/analytics', analyticsRouter);
 app.use('/api/tmux', tmuxRouter);
 
 app.use((_req: Request, res: Response) => {
@@ -92,6 +97,7 @@ async function start() {
     console.log('Historical dashboard data cleanup completed', cleanupSummary);
     
     await syncOMOConfig();
+    syncProjectDirectories();
     agentStatusMonitor.syncFromOpenCode();
     
     const server = app.listen(PORT, () => {
@@ -101,6 +107,10 @@ async function start() {
     initializeWebSocketServer(server);
     
     startTmuxPolling();
+    
+    // Start OpenCode DB polling for activity log persistence
+    startPollingOpenCodeDB();
+    console.log('OpenCode DB polling started for activity logs');
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
@@ -153,5 +163,59 @@ function startTmuxPolling() {
   pollTmuxSessions();
   setInterval(pollTmuxSessions, pollInterval);
 }
+
+
+
+// Graceful shutdown
+function syncProjectDirectories() {
+  try {
+    const ocProjects = getOpenCodeProjects();
+    if (ocProjects.error || !ocProjects.data) {
+      console.log('[syncProjectDirectories] No OpenCode projects found');
+      return;
+    }
+
+    const db = getDatabaseSync();
+    let updated = 0;
+    for (const p of ocProjects.data) {
+      const dir = p.worktree || '';
+      if (!dir) continue;
+
+      const existing = db.exec(
+        'SELECT id FROM projects WHERE directory = ? LIMIT 1',
+        [dir]
+      );
+      if (existing[0]?.values[0]) {
+        db.run(
+          "UPDATE projects SET directory = ? WHERE id = ?",
+          [dir, existing[0].values[0][0]]
+        );
+        updated++;
+      } else {
+        db.run(
+          "INSERT INTO projects (name, directory) VALUES (?, ?)",
+          [p.name || 'Untitled', dir]
+        );
+        updated++;
+      }
+    }
+    console.log(`[syncProjectDirectories] Synced ${updated} project directories`);
+  } catch (err) {
+    console.error('[syncProjectDirectories] Error:', err);
+  }
+}
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, stopping polling...');
+  stopPollingOpenCodeDB();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, stopping polling...');
+  stopPollingOpenCodeDB();
+  process.exit(0);
+});
+
 
 start();

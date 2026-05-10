@@ -1,11 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('os', () => ({
-  default: {
-    homedir: vi.fn(),
-    platform: vi.fn(),
-  },
-}));
+const mockHomedir = vi.hoisted(() => vi.fn());
+const mockPlatform = vi.hoisted(() => vi.fn());
+
+vi.mock('os', () => ({ default: { homedir: mockHomedir, platform: mockPlatform } }));
+vi.mock('node:os', () => ({ default: { homedir: mockHomedir, platform: mockPlatform } }));
 
 import os from 'os';
 import {

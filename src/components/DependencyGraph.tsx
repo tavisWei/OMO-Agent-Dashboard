@@ -11,6 +11,9 @@ interface DependencyGraphProps {
 const statusColors: Record<TaskStatus, { bg: string; border: string; text: string }> = {
   backlog: { bg: '#1e293b', border: '#334155', text: '#94a3b8' }, // slate-800, slate-700, slate-400
   in_progress: { bg: '#1e3a8a', border: '#1d4ed8', text: '#60a5fa' }, // blue-900, blue-700, blue-400
+  review_required: { bg: '#78350f', border: '#b45309', text: '#fbbf24' }, // amber-900, amber-700, amber-400
+  needs_fix: { bg: '#7f1d1d', border: '#b91c1c', text: '#f87171' }, // red-900, red-700, red-400
+  blocked: { bg: '#1e293b', border: '#475569', text: '#64748b' }, // slate-800, slate-600, slate-500
   done: { bg: '#064e3b', border: '#047857', text: '#34d399' }, // emerald-900, emerald-700, emerald-400
   failed: { bg: '#7f1d1d', border: '#b91c1c', text: '#f87171' }, // red-900, red-700, red-400
 };

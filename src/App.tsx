@@ -4,11 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { AppLayout } from './components/AppLayout';
 import { SettingsPage } from './components/SettingsPage';
 import { ActivityFeed } from './components/ActivityFeed';
+import { AnalyticsPage } from './components/AnalyticsPage';
 import { AgentDetail } from './components/AgentDetail';
 import { TaskDetail } from './components/TaskDetail';
 import { ModelLibrary } from './components/ModelLibrary';
 import { ProjectDetail } from './components/ProjectDetail';
 import { AgentMonitorView } from './components/AgentMonitorView';
+import { KanbanBoard } from './components/KanbanBoard';
 import { useThemeStore } from './stores/themeStore';
 import { useDashboardStore } from './stores/dashboardStore';
 import { getAgentMeta, getCategoryMeta } from './lib/agentMeta';
@@ -487,12 +489,13 @@ function App() {
         <Routes>
           <Route element={<AppLayout />}>
             <Route path={ROUTES.HOME} element={<AgentMonitorView />} />
+            <Route path={ROUTES.WORKBOARD} element={<KanbanBoard />} />
             <Route path={ROUTES.TASK(':id')} element={<TaskDetail />} />
             <Route path={ROUTES.MODELS} element={<ModelLibrary />} />
             <Route path={ROUTES.AGENTS} element={<Agents />} />
             <Route path={ROUTES.PROJECT(':id')} element={<ProjectDetail />} />
             <Route path={ROUTES.AGENT(':id')} element={<AgentDetail />} />
-            <Route path={ROUTES.ANALYTICS} element={<Navigate to={ROUTES.HOME} replace />} />
+            <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
             <Route path={ROUTES.SETTINGS} element={<Settings />} />
             <Route path={ROUTES.ACTIVITY} element={<Activity />} />
             <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />

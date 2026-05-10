@@ -2,7 +2,7 @@ import os from 'node:os';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 import type { DashboardProjectGroup, DashboardSession, DashboardSessionTreeNode, DashboardOverview } from '../types/domain.js';
-import type { OpenCodeMessageMeta, OpenCodeMessageRow, OpenCodeProjectRow, OpenCodeSessionQuery, OpenCodeSessionRow, OpenCodeTodoRow } from '../types/opencode.js';
+import type { OpenCodeMessageMeta, OpenCodeMessageRow, OpenCodeProjectRow, OpenCodeSessionQuery, OpenCodeSessionRow, OpenCodeTodoRow, PartRow } from '../types/opencode.js';
 import { toDashboardSession, toOverview, toProjectGroups, toSessionTree } from './adapter.js';
 
 export interface ReaderError {
@@ -21,6 +21,14 @@ export interface DashboardSnapshot {
   projects: DashboardProjectGroup[];
   overview: DashboardOverview;
   error: ReaderError | null;
+}
+
+export interface ModelDistRow {
+  model: string;
+  provider: string;
+  calls: number;
+  total_tokens: number;
+  total_cost: number;
 }
 
 const DEFAULT_DAYS = 7;
@@ -256,6 +264,46 @@ export function getOpenCodeSessionTodos(sessionId: string): ReaderResult<OpenCod
   }
 }
 
+
+export interface TokenStatsRow {
+  day: string;
+  total_tokens: number;
+  input_tokens: number;
+  output_tokens: number;
+  reasoning_tokens: number;
+  total_cost: number;
+}
+
+export function getTokenStats(days: number): ReaderResult<TokenStatsRow[]> {
+  const dbResult = getConnection();
+  if (dbResult.error) {
+    return { data: [], error: dbResult.error };
+  }
+
+  try {
+    const since = Date.now() - days * 24 * 60 * 60 * 1000;
+    const stmt = dbResult.data.prepare(`
+      SELECT 
+        date(time_created / 1000, 'unixepoch') as day,
+        COALESCE(SUM(json_extract(data, '$.tokens.total')), 0) as total_tokens,
+        COALESCE(SUM(json_extract(data, '$.tokens.input')), 0) as input_tokens,
+        COALESCE(SUM(json_extract(data, '$.tokens.output')), 0) as output_tokens,
+        COALESCE(SUM(json_extract(data, '$.tokens.reasoning')), 0) as reasoning_tokens,
+        COALESCE(SUM(json_extract(data, '$.cost')), 0) as total_cost
+      FROM message
+      WHERE time_created >= ?
+      GROUP BY day
+      ORDER BY day
+    `);
+    return { data: stmt.all(since) as TokenStatsRow[], error: null };
+  } catch (error) {
+    return {
+      data: [],
+      error: { code: 'DB_QUERY_FAILED', message: error instanceof Error ? error.message : String(error) },
+    };
+  }
+}
+
 export function getDashboardSnapshot(query: OpenCodeSessionQuery = {}): DashboardSnapshot {
   const sessionsResult = getOpenCodeSessions(query);
   const projectsResult = getOpenCodeProjects();
@@ -269,3 +317,57 @@ export function getDashboardSnapshot(query: OpenCodeSessionQuery = {}): Dashboar
     error,
   };
 }
+
+export function getOpenCodeSessionParts(sessionId: string, limit = 200, offset = 0): ReaderResult<PartRow[]> {
+  const dbResult = getConnection();
+  if (dbResult.error) {
+    return { data: [], error: dbResult.error };
+  }
+
+  try {
+    const stmt = dbResult.data.prepare(`
+      SELECT id, message_id, session_id, time_created, time_updated, data
+      FROM part
+      WHERE session_id = ?
+      ORDER BY time_created ASC
+      LIMIT ? OFFSET ?
+    `);
+    return { data: stmt.all(sessionId, limit, offset) as PartRow[], error: null };
+  } catch (error) {
+    return {
+      data: [],
+      error: { code: 'DB_QUERY_FAILED', message: error instanceof Error ? error.message : String(error) },
+    };
+  }
+}
+
+export function getModelDistribution(days = 30): ReaderResult<ModelDistRow[]> {
+  const dbResult = getConnection();
+  if (dbResult.error) {
+    return { data: [], error: dbResult.error };
+  }
+
+  try {
+    const threshold = Date.now() - days * 24 * 60 * 60 * 1000;
+    const stmt = dbResult.data.prepare(`
+      SELECT
+        json_extract(data, '$.modelID') as model,
+        json_extract(data, '$.providerID') as provider,
+        COUNT(*) as calls,
+        COALESCE(SUM(json_extract(data, '$.tokens.total')), 0) as total_tokens,
+        COALESCE(SUM(json_extract(data, '$.cost')), 0) as total_cost
+      FROM message
+      WHERE time_created >= ?
+      GROUP BY model, provider
+      ORDER BY calls DESC
+    `);
+    const rows = stmt.all(threshold) as ModelDistRow[];
+    return { data: rows, error: null };
+  } catch (error) {
+    return {
+      data: [],
+      error: { code: 'DB_QUERY_FAILED', message: error instanceof Error ? error.message : String(error) },
+    };
+  }
+}
+

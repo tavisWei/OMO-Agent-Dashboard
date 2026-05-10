@@ -2,7 +2,8 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { Task, Agent, TaskPriority } from '../types';
+import type { Task, Agent, TaskPriority, TaskSession } from '../types';
+import { useDashboardStore } from '../stores/dashboardStore';
 
 interface TaskCardProps {
   task: Task;
@@ -10,6 +11,7 @@ interface TaskCardProps {
   subtaskCount: number;
   isBlocked: boolean;
   onDelete: (taskId: number) => void;
+  taskSessions?: TaskSession[];
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -34,9 +36,21 @@ const priorityColors: Record<TaskPriority, string> = {
   critical: 'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
-export function TaskCard({ task, agents, subtaskCount, isBlocked, onDelete }: TaskCardProps) {
+const sessionStatusColors: Record<string, string> = {
+  running: 'bg-green-500/20 text-green-400 border-green-500/30',
+  thinking: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  completed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  idle: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+  queued: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  error: 'bg-red-500/20 text-red-400 border-red-500/30',
+  stopped: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+  offline: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+};
+
+export function TaskCard({ task, agents, subtaskCount, isBlocked, onDelete, taskSessions }: TaskCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dashboardSessions = useDashboardStore((state) => state.sessions);
   const {
     attributes,
     listeners,
@@ -50,6 +64,17 @@ export function TaskCard({ task, agents, subtaskCount, isBlocked, onDelete }: Ta
     transform: CSS.Transform.toString(transform),
     transition
   };
+
+  // Resolve linked session details from the store
+  const linkedSessions = (taskSessions ?? [])
+    .map(ts => dashboardSessions.find(ds => ds.id === ts.session_id))
+    .filter((s): s is NonNullable<typeof s> => s != null);
+  const sessionCount = linkedSessions.length;
+  const latestSession = linkedSessions.length > 0
+    ? linkedSessions.reduce((latest, s) =>
+        s.updatedAt > latest.updatedAt ? s : latest
+      )
+    : null;
 
   return (
     <div
@@ -85,6 +110,24 @@ export function TaskCard({ task, agents, subtaskCount, isBlocked, onDelete }: Ta
             )}
           </div>
           
+          {/* Linked sessions display */}
+          <div className="mt-1">
+            {sessionCount === 0 ? (
+              <span className="text-[10px] text-slate-600">{t('kanban.card.noSessions')}</span>
+            ) : (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-medium text-slate-400 bg-slate-700/30 px-1.5 py-0.5 rounded border border-slate-700/50">
+                  {t(sessionCount === 1 ? 'kanban.card.oneSession' : 'kanban.card.sessions', { count: sessionCount })}
+                </span>
+                {latestSession && (
+                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${sessionStatusColors[latestSession.status] ?? 'bg-slate-500/20 text-slate-400 border-slate-500/30'}`}>
+                    {latestSession.status}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
           {task.description && (
             <p className="mt-1 text-xs text-slate-500 line-clamp-2 leading-relaxed">
               {task.description}

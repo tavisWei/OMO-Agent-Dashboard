@@ -4,6 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useTaskStore } from '../stores/taskStore';
 import { DependencyGraph } from './DependencyGraph';
 import type { TaskStatus, TaskPriority, TaskOrchestrationPattern, TaskOrchestrationSnapshot } from '../types';
+import { SessionTreeView } from './SessionTreeView';
+import { EvidenceChain } from './EvidenceChain';
+import { toDashboardSession } from '../server/adapter';
+import { inferTaskStatus } from '../utils/taskStateSync';
+import type { TaskSession } from '../types';
+import type { OpenCodeSessionRow, OpenCodeMessageRow, OpenCodeTodoRow, PartRow } from '../types/opencode';
+import type { DashboardSession } from '../types/domain';
+
 
 const priorityColors: Record<TaskPriority, string> = {
   low: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
@@ -15,8 +23,11 @@ const priorityColors: Record<TaskPriority, string> = {
 const statusColors: Record<TaskStatus, string> = {
   backlog: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
   in_progress: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  review_required: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+  needs_fix: 'bg-red-500/20 text-red-400 border-red-500/30',
+  blocked: 'bg-slate-600/20 text-slate-300 border-slate-600/30',
   done: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  failed: 'bg-red-500/20 text-red-400 border-red-500/30',
+  failed: 'bg-red-700/20 text-red-500 border-red-700/30',
 };
 
 export function TaskDetail() {
@@ -39,12 +50,35 @@ export function TaskDetail() {
   const [orchestrationPattern, setOrchestrationPattern] = useState<TaskOrchestrationPattern>('sequential');
   const [isOrchestrationLoading, setIsOrchestrationLoading] = useState(false);
 
+  // Linked sessions — fetched from /api/tasks/:id/sessions
+  const [taskSessions, setTaskSessions] = useState<TaskSession[]>([]);
+  const [linkedSessions, setLinkedSessions] = useState<DashboardSession[]>([]);
+  const [sessionParts, setSessionParts] = useState<PartRow[]>([]);
+  const [opencodeStatus, setOpencodeStatus] = useState<{
+    hasSession: boolean;
+    taskStatus: string;
+    inferredStatus: string;
+    todos: Array<{ content: string; status: string }>;
+    hasErrorParts: boolean;
+    summary: { additions: number; deletions: number; files: number } | null;
+  } | null>(null);
+
   useEffect(() => {
     if (id) {
       fetchTaskDetail(Number(id));
     }
     return () => clearSelectedTask();
   }, [id, fetchTaskDetail, clearSelectedTask]);
+
+  // Fetch OpenCode status for real-time task state inference
+  useEffect(() => {
+    if (!id) return;
+    const taskId = Number(id);
+    fetch(`/api/tasks/${taskId}/opencode-status`)
+      .then((r) => r.json())
+      .then((data) => setOpencodeStatus(data))
+      .catch(() => setOpencodeStatus(null));
+  }, [id]);
 
   const fetchOrchestration = useCallback(async (taskId: number) => {
     try {
@@ -64,6 +98,50 @@ export function TaskDetail() {
     if (!id) return;
     void fetchOrchestration(Number(id));
   }, [id, fetchOrchestration]);
+
+  // Fetch linked sessions and their parts
+  useEffect(() => {
+    if (!id || !selectedTask) return;
+    const taskId = Number(id);
+
+    const fetchLinkedSessions = async () => {
+      try {
+        const resp = await fetch(`/api/tasks/${taskId}/sessions`);
+        if (!resp.ok) return;
+        const tsList = await resp.json() as TaskSession[];
+        setTaskSessions(tsList);
+
+        // Enrich: fetch full session details and parts for each linked session
+        const enriched = await Promise.all(tsList.map(async (ts) => {
+          const [sResp, pResp] = await Promise.all([
+            fetch(`/api/sessions/${ts.session_id}`),
+            fetch(`/api/sessions/${ts.session_id}/parts`),
+          ]);
+          const sData = sResp.ok ? await sResp.json() : null;
+          const pData: PartRow[] = pResp.ok ? await pResp.json() : [];
+          return { sData, pData };
+        }));
+
+        const dashSessions: DashboardSession[] = [];
+        const allParts: PartRow[] = [];
+        for (const { sData, pData } of enriched) {
+          if (!sData?.session) continue;
+          dashSessions.push(toDashboardSession(
+            sData.session as OpenCodeSessionRow,
+            (sData.todos ?? []) as OpenCodeTodoRow[],
+            (sData.messages ?? []) as OpenCodeMessageRow[],
+          ));
+          allParts.push(...pData);
+        }
+        setLinkedSessions(dashSessions);
+        setSessionParts(allParts);
+      } catch {
+        // silently ignore fetch errors
+      }
+    };
+
+    fetchLinkedSessions();
+  }, [id, selectedTask]);
 
   if (isLoading) {
     return (
@@ -158,6 +236,17 @@ export function TaskDetail() {
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusColors[task.status]}`}>
               {task.status.replace('_', ' ').toUpperCase()}
             </span>
+            {(() => {
+              const inferred = opencodeStatus?.inferredStatus ?? inferTaskStatus(task, null, null, false);
+              if (inferred !== task.status) {
+                return (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20" title={`Auto-sync: ${opencodeStatus?.hasSession ? 'OpenCode data' : 'fallback'}`}>
+                    → {inferred.replace('_', ' ')}
+                  </span>
+                );
+              }
+              return null;
+            })()}
             {task.priority && (
               <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${priorityColors[task.priority]}`}>
                 {task.priority.toUpperCase()}
@@ -256,7 +345,7 @@ export function TaskDetail() {
         <div className="space-y-6">
           {/* Assigned Agents */}
           <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-5">
-            <h3 className="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wider">Orchestration</h3>
+            <h3 className="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wider">{t('tasks.orchestration')}</h3>
             <div className="space-y-4">
               <div className="flex items-center gap-3 flex-wrap">
                 <select
@@ -265,9 +354,9 @@ export function TaskDetail() {
                   className="px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-200 text-sm"
                   disabled={!!orchestration || isOrchestrationLoading}
                 >
-                  <option value="sequential">Sequential</option>
-                  <option value="parallel">Parallel</option>
-                  <option value="pipeline">Pipeline</option>
+                  <option value="sequential">{t('tasks.sequential')}</option>
+                  <option value="parallel">{t('tasks.parallel')}</option>
+                  <option value="pipeline">{t('tasks.pipeline')}</option>
                 </select>
                 <button
                   type="button"
@@ -275,7 +364,7 @@ export function TaskDetail() {
                   disabled={!!orchestration || isOrchestrationLoading}
                   className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium disabled:opacity-50"
                 >
-                  Start
+                  {t('tasks.start')}
                 </button>
                 <button
                   type="button"
@@ -283,7 +372,7 @@ export function TaskDetail() {
                   disabled={!orchestration || isOrchestrationLoading}
                   className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium disabled:opacity-50"
                 >
-                  Advance
+                  {t('tasks.advance')}
                 </button>
                 <button
                   type="button"
@@ -291,7 +380,7 @@ export function TaskDetail() {
                   disabled={!orchestration || isOrchestrationLoading}
                   className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm font-medium disabled:opacity-50"
                 >
-                  Fail
+                  {t('tasks.fail')}
                 </button>
               </div>
 
@@ -324,7 +413,7 @@ export function TaskDetail() {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-slate-500 italic">No orchestration started.</p>
+                <p className="text-sm text-slate-500 italic">{t('tasks.noOrchestration')}</p>
               )}
             </div>
           </div>
@@ -397,13 +486,34 @@ export function TaskDetail() {
               </div>
             </div>
           </div>
+
+          {/* {t('tasks.linkedSessions')} */}
+          <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-5">
+            <h3 className="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wider">
+              {t('tasks.linkedSessions')}
+            </h3>
+            <div className="text-sm text-slate-300 mb-3">
+              {t('tasks.sessionsLinked', { count: taskSessions.length })}
+            </div>
+            {linkedSessions.length > 0 && (
+              <SessionTreeView sessions={linkedSessions} />
+            )}
+            {sessionParts.length > 0 && (
+              <div className="mt-4">
+                <EvidenceChain parts={sessionParts} />
+              </div>
+            )}
+            {taskSessions.length === 0 && (
+              <p className="text-sm text-slate-500 italic">{t('tasks.noSessionsLinked')}</p>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Dependency Graph */}
       {(dependencies.blocking.length > 0 || dependencies.dependents.length > 0) && (
         <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl p-5">
-          <h3 className="text-sm font-medium text-slate-400 mb-4 uppercase tracking-wider">Dependency Graph</h3>
+          <h3 className="text-sm font-medium text-slate-400 mb-4 uppercase tracking-wider">{t('tasks.dependencyGraph')}</h3>
           <DependencyGraph 
             tasks={[
               {

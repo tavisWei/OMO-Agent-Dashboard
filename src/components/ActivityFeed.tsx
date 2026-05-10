@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ActivityLog, ActivityType } from '../types';
 import { useActivityStore } from '../stores/activityStore';
 import { useDashboardStore } from '../stores/dashboardStore';
+import { useTranslation } from 'react-i18next';
 
 const ACTIVITY_ICONS: Record<ActivityType, { icon: string; color: string; bg: string }> = {
   started: { icon: '▶', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
@@ -12,13 +13,13 @@ const ACTIVITY_ICONS: Record<ActivityType, { icon: string; color: string; bg: st
   task_completed: { icon: '✓', color: 'text-purple-400', bg: 'bg-purple-500/10' },
 };
 
-const ACTIVITY_LABELS: Record<ActivityType, string> = {
-  started: 'Started',
-  stopped: 'Stopped',
-  error: 'Error',
-  config_changed: 'Config Changed',
-  task_assigned: 'Task Assigned',
-  task_completed: 'Task Completed',
+const actionKeyMap: Record<string, string> = {
+  started: 'activity.started',
+  stopped: 'activity.stopped',
+  error: 'activity.error',
+  config_changed: 'activity.configChanged',
+  task_assigned: 'activity.taskAssigned',
+  task_completed: 'activity.taskCompleted',
 };
 
 function formatRelativeTime(dateString: string): string {
@@ -47,6 +48,7 @@ interface ActivityItemProps {
 }
 
 function ActivityItem({ log, compact = false }: ActivityItemProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const config = ACTIVITY_ICONS[log.action] || ACTIVITY_ICONS.config_changed;
   const hasDetails = log.details && log.details.trim().length > 0;
@@ -62,7 +64,7 @@ function ActivityItem({ log, compact = false }: ActivityItemProps) {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`${compact ? 'text-xs' : 'text-sm'} font-medium ${config.color}`}>
-                {ACTIVITY_LABELS[log.action] || log.action}
+                {t(actionKeyMap[log.action] || `activity.${log.action}`, log.action)}
               </span>
               {log.agent_name && (
                 <span className={`text-[10px] text-[var(--color-text-secondary)] bg-[var(--color-bg-tertiary)] px-1.5 py-0.5 rounded`}>
@@ -109,6 +111,7 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ refreshInterval = 15000, compact = false }: ActivityFeedProps) {
+  const { t } = useTranslation();
   const [selectedTypes, setSelectedTypes] = useState<ActivityType[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<string>('all');
@@ -183,7 +186,7 @@ export function ActivityFeed({ refreshInterval = 15000, compact = false }: Activ
                     }`}
                   >
                     <span>{config.icon}</span>
-                    <span>{ACTIVITY_LABELS[type]}</span>
+                    <span>{t(actionKeyMap[type] || `activity.${type}`, type)}</span>
                   </button>
                 );
               })}

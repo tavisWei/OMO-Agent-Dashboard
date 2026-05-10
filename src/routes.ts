@@ -8,4 +8,5 @@ export const ROUTES = {
   ANALYTICS: '/analytics',
   SETTINGS: '/settings',
   ACTIVITY: '/activity',
+  WORKBOARD: '/workboard',
 } as const;

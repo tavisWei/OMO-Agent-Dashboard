@@ -149,6 +149,19 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 );
 `;
 
+// Task sessions table - links OpenCode sessions to dashboard tasks
+export const CREATE_TASK_SESSIONS_TABLE = `
+CREATE TABLE IF NOT EXISTS task_sessions (
+  task_id INTEGER NOT NULL,
+  session_id TEXT NOT NULL,
+  started_at TEXT,
+  completed_at TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  PRIMARY KEY (task_id, session_id),
+  FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+);
+`;
+
 // Indexes for better query performance
 export const CREATE_INDEXES = `
 CREATE INDEX IF NOT EXISTS idx_agents_project_id ON agents(project_id);
@@ -175,6 +188,7 @@ CREATE INDEX IF NOT EXISTS idx_task_dependencies_dependency_type ON task_depende
 CREATE INDEX IF NOT EXISTS idx_task_orchestrations_task_id ON task_orchestrations(task_id);
 CREATE INDEX IF NOT EXISTS idx_task_orchestrations_status ON task_orchestrations(status);
 CREATE INDEX IF NOT EXISTS idx_task_orchestrations_pattern ON task_orchestrations(pattern);
+CREATE INDEX IF NOT EXISTS idx_task_sessions_session_id ON task_sessions(session_id);
 `;
 
 // All schema definitions combined
@@ -186,6 +200,7 @@ export const ALL_SCHEMA = [
   CREATE_TASK_AGENT_ASSIGNMENTS_TABLE,
   CREATE_TASK_DEPENDENCIES_TABLE,
   CREATE_TASK_ORCHESTRATIONS_TABLE,
+  CREATE_TASK_SESSIONS_TABLE,
   CREATE_COST_RECORDS_TABLE,
   CREATE_ACTIVITY_LOGS_TABLE,
 ].join('\n');
@@ -223,6 +238,8 @@ export interface Task extends AppTask {}
 export interface CostRecord extends AppCostRecord {}
 
 export interface ActivityLog extends AppActivityLog {}
+
+export interface TaskSession extends AppTaskSession {}
 import type {
   Agent as AppAgent,
   AgentSource,
@@ -232,6 +249,7 @@ import type {
   Task as AppTask,
   TaskAgentAssignment as AppTaskAgentAssignment,
   TaskOrchestration as AppTaskOrchestration,
+  TaskSession as AppTaskSession,
   TaskOrchestrationAgentOrderEntry as AppTaskOrchestrationAgentOrderEntry,
   TaskDependency as AppTaskDependency,
   ActivityLog as AppActivityLog,

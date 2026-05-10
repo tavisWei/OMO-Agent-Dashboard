@@ -12,8 +12,11 @@ import {
   getTaskDependencies,
   getTaskSubtasks,
   getDependentTasks,
+  getTaskSessions,
+  linkTaskSession,
   replaceTaskAssignments,
   replaceTaskDependencies,
+  unlinkTaskSession,
   updateTask,
 } from '../../db/index.js';
 import {
@@ -25,10 +28,11 @@ import {
   TASK_ORCHESTRATION_PATTERNS,
 } from '../orchestrator.js';
 import { broadcastAll, createWSMessage } from '../websocket.js';
+import { getOpenCodeSessionTodos, getOpenCodeSessionById, getOpenCodeSessionParts } from '../opencode-reader.js';
 
 const router = Router();
 
-const TASK_STATUSES: TaskStatus[] = ['backlog', 'in_progress', 'done', 'failed'];
+const TASK_STATUSES: TaskStatus[] = ['backlog', 'in_progress', 'review_required', 'needs_fix', 'blocked', 'done', 'failed'];
 const TASK_PRIORITIES: TaskPriority[] = ['low', 'medium', 'high', 'critical'];
 const TASK_ASSIGNMENT_ROLES: TaskAgentAssignmentRole[] = ['lead', 'worker', 'reviewer'];
 const TASK_DEPENDENCY_TYPES: TaskDependencyType[] = ['blocks', 'requires'];
@@ -804,11 +808,13 @@ function isValidStatusTransition(currentStatus: TaskStatus, nextStatus: TaskStat
 
   const allowedTransitions: Record<TaskStatus, TaskStatus[]> = {
     backlog: ['in_progress'],
-    in_progress: ['done', 'failed'],
+    in_progress: ['review_required', 'blocked', 'done', 'failed'],
+    review_required: ['needs_fix', 'done'],
+    needs_fix: ['in_progress'],
+    blocked: ['in_progress'],
     done: [],
     failed: [],
   };
-
   return allowedTransitions[currentStatus].includes(nextStatus);
 }
 
@@ -891,5 +897,172 @@ function isTaskOrchestrationAction(value: unknown): value is TaskOrchestrationAc
 function isTaskOrchestrationPattern(value: unknown): value is TaskOrchestrationPattern {
   return typeof value === 'string' && TASK_ORCHESTRATION_PATTERNS.includes(value as TaskOrchestrationPattern);
 }
+
+// Task Session linking endpoints
+router.post('/:id/sessions', (req, res) => {
+  try {
+    const taskId = parseId(req.params.id);
+    if (taskId === null) {
+      return res.status(400).json({ error: 'Invalid task ID' });
+    }
+
+    const task = getTask(taskId);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const sessionId = req.body?.sessionId;
+    if (!sessionId || typeof sessionId !== 'string') {
+      return res.status(400).json({ error: 'sessionId (string) is required' });
+    }
+
+    linkTaskSession(taskId, sessionId);
+
+    const sessions = getTaskSessions(taskId);
+    broadcastAll(createWSMessage('task_updated', buildTaskDetail(taskId)));
+    res.status(201).json(sessions);
+  } catch (error) {
+    console.error('Error linking session to task:', error);
+    res.status(500).json({ error: 'Failed to link session to task' });
+  }
+});
+
+router.get('/:id/sessions', (req, res) => {
+  try {
+    const taskId = parseId(req.params.id);
+    if (taskId === null) {
+      return res.status(400).json({ error: 'Invalid task ID' });
+    }
+
+    const task = getTask(taskId);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const sessions = getTaskSessions(taskId);
+    res.json(sessions);
+  } catch (error) {
+    console.error('Error getting task sessions:', error);
+    res.status(500).json({ error: 'Failed to get task sessions' });
+  }
+});
+
+router.delete('/:id/sessions/:sessionId', (req, res) => {
+  try {
+    const taskId = parseId(req.params.id);
+    if (taskId === null) {
+      return res.status(400).json({ error: 'Invalid task ID' });
+    }
+
+    const sessionId = req.params.sessionId;
+    if (!sessionId) {
+      return res.status(400).json({ error: 'sessionId is required' });
+    }
+
+    const task = getTask(taskId);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    unlinkTaskSession(taskId, sessionId);
+    broadcastAll(createWSMessage('task_updated', buildTaskDetail(taskId)));
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error unlinking session from task:', error);
+    res.status(500).json({ error: 'Failed to unlink session from task' });
+  }
+});
+
+router.get('/:id/opencode-status', (req, res) => {
+  try {
+    const taskId = parseId(req.params.id);
+    if (taskId === null) {
+      return res.status(400).json({ error: 'Invalid task ID' });
+    }
+
+    const task = getTask(taskId);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const sessions = getTaskSessions(taskId);
+    const activeSession = sessions.find((s) => s.status === 'active');
+
+    if (!activeSession) {
+      return res.json({
+        hasSession: false,
+        taskStatus: task.status,
+        inferredStatus: task.status,
+        todos: [],
+        hasErrorParts: false,
+        summary: null,
+      });
+    }
+
+    const sessionId = activeSession.session_id;
+
+    const sessionResult = getOpenCodeSessionById(sessionId);
+    if (sessionResult.error || !sessionResult.data) {
+      return res.json({
+        hasSession: true,
+        taskStatus: task.status,
+        inferredStatus: task.status,
+        todos: [],
+        hasErrorParts: false,
+        summary: null,
+      });
+    }
+
+    const dashboardSession = sessionResult.data;
+    const raw = dashboardSession.raw;
+
+    const todosResult = getOpenCodeSessionTodos(sessionId);
+    const todos = todosResult.error ? [] : todosResult.data;
+
+    const partsResult = getOpenCodeSessionParts(sessionId, 100, 0);
+    const parts = partsResult.error ? [] : partsResult.data;
+    const hasErrorParts = parts.some((p) => {
+      try {
+        const data = JSON.parse(p.data);
+        return data.type === 'tool_result' && data.isError === true;
+      } catch {
+        return false;
+      }
+    });
+
+    const allTodosCompleted = todos.length > 0 && todos.every((t) => t.status === 'completed');
+    const anyTodoFailed = todos.some((t) => t.status === 'failed');
+
+    let inferredStatus = task.status;
+    if (anyTodoFailed) {
+      inferredStatus = 'needs_fix';
+    } else if (hasErrorParts) {
+      inferredStatus = 'needs_fix';
+    } else if (allTodosCompleted) {
+      inferredStatus = 'review_required';
+    } else if (raw.time_archived != null) {
+      inferredStatus = 'done';
+    } else if (todos.some((t) => t.status === 'in_progress')) {
+      inferredStatus = 'in_progress';
+    }
+
+    res.json({
+      hasSession: true,
+      taskStatus: task.status,
+      inferredStatus,
+      sessionId,
+      todos: todos.map((t) => ({ content: t.content, status: t.status })),
+      hasErrorParts,
+      summary: {
+        additions: raw.summary_additions ?? 0,
+        deletions: raw.summary_deletions ?? 0,
+        files: raw.summary_files ?? 0,
+      },
+    });
+  } catch (error) {
+    console.error('Error getting opencode status for task:', error);
+    res.status(500).json({ error: 'Failed to get opencode status' });
+  }
+});
 
 export default router;

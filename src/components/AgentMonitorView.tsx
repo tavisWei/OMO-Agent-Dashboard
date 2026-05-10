@@ -66,7 +66,7 @@ export function AgentMonitorView() {
               : 'bg-red-500/10 text-red-500 border border-red-500/20'
           }`}>
             <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-            {wsConnected ? 'Connected' : 'Disconnected'}
+            {wsConnected ? t('agents.connected') : t('agents.disconnected')}
           </span>
         </div>
       </div>
@@ -105,13 +105,13 @@ export function AgentMonitorView() {
 
       {selectedProject ? (
         <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
-          Filtering sessions for project: <span className="font-medium text-[var(--color-text)]">{selectedProject.name}</span>
+          {t('agents.filteringByProject')} <span className="font-medium text-[var(--color-text)]">{selectedProject.name}</span>
         </div>
       ) : null}
 
       <div className="grid grid-cols-6 gap-4">
         <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex flex-col">
-          <span className="text-xs text-[var(--color-text-secondary)] mb-1">Active Sessions</span>
+          <span className="text-xs text-[var(--color-text-secondary)] mb-1">{t('agents.activeSessions')}</span>
           <span className="text-3xl font-bold text-[var(--color-text)]">{effectiveProjectId || statusFilter.length > 0 ? totalSessionsCount : (overview?.totalSessions ?? totalSessionsCount)}</span>
         </div>
         <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] flex flex-col">
@@ -140,21 +140,21 @@ export function AgentMonitorView() {
 
       <div className="grid grid-cols-3 gap-6 flex-1 min-h-0">
         <div className="col-span-2 flex flex-col space-y-4 overflow-hidden">
-          <h2 className="text-lg font-semibold text-[var(--color-text)]">Live Agents</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text)]">{t('agents.liveAgents')}</h2>
           
           <div className="flex-1 overflow-y-auto pr-2 space-y-4">
             {isLoading ? (
               <div className="h-full flex items-center justify-center text-[var(--color-text-secondary)] border-2 border-dashed border-[var(--color-border)] rounded-xl p-8">
-                Loading real OpenCode sessions...
+                {t('agents.loadingSessions')}
               </div>
             ) : activeAgents.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-[var(--color-text-secondary)] border-2 border-dashed border-[var(--color-border)] rounded-xl p-8">
                 <div className="w-16 h-16 mb-4 rounded-full bg-[var(--color-bg-tertiary)] flex items-center justify-center">
                   <span className="text-2xl">💤</span>
                 </div>
-                <h3 className="text-lg font-medium text-[var(--color-text)] mb-2">No OpenCode sessions</h3>
+                <h3 className="text-lg font-medium text-[var(--color-text)] mb-2">{t('agents.noOpenCodeSessions')}</h3>
                 <p className="text-center max-w-md">
-                  {effectiveProjectId ? 'No sessions match the selected project and status filters.' : 'No active or recent OpenCode sessions were found for the current data source.'}
+                  {effectiveProjectId ? t('agents.noSessionsMatch') : t('agents.noActiveSessions')}
                 </p>
               </div>
             ) : (
@@ -179,7 +179,7 @@ export function AgentMonitorView() {
         </div>
 
         <div className="col-span-1 flex flex-col space-y-4 overflow-hidden">
-          <h2 className="text-lg font-semibold text-[var(--color-text)]">System Activity</h2>
+          <h2 className="text-lg font-semibold text-[var(--color-text)]">{t('agents.systemActivity')}</h2>
           <div className="flex-1 min-h-0">
             <ActivityFeed refreshInterval={10000} compact={true} />
           </div>

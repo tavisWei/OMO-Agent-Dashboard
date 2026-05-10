@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { mkdirSync } from 'fs';
 import { runMigrations } from './migrations.js';
-import type { Project, Agent, Model, Task, TaskAgentAssignment, TaskDependency, TaskOrchestration, TaskOrchestrationAgentOrderEntry, CostRecord, ActivityLog } from './schema.js';
+import type { Project, Agent, Model, Task, TaskAgentAssignment, TaskDependency, TaskOrchestration, TaskOrchestrationAgentOrderEntry, TaskSession, CostRecord, ActivityLog } from './schema.js';
 
 const TASK_PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
 
@@ -1043,4 +1043,53 @@ function normalizeAssignedAgents(value: unknown, agentId: number | null): number
 
 function isIntegerValue(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value);
+}
+
+// Task Session CRUD - link OpenCode sessions to dashboard tasks
+export function linkTaskSession(taskId: number, sessionId: string): void {
+  const database = getDatabaseSync();
+  database.run(
+    "INSERT OR REPLACE INTO task_sessions (task_id, session_id, started_at, status) VALUES (?, ?, datetime('now'), 'active')",
+    [taskId, sessionId],
+  );
+  saveDatabase();
+}
+
+export function unlinkTaskSession(taskId: number, sessionId: string): void {
+  const database = getDatabaseSync();
+  database.run(
+    'DELETE FROM task_sessions WHERE task_id = ? AND session_id = ?',
+    [taskId, sessionId],
+  );
+  saveDatabase();
+}
+
+export function getTaskSessions(taskId: number): TaskSession[] {
+  const database = getDatabaseSync();
+  const result = database.exec(
+    'SELECT * FROM task_sessions WHERE task_id = ? ORDER BY started_at DESC',
+    [taskId],
+  );
+  if (!result[0]) return [];
+  return result[0].values.map((row: any[]) => rowToObj<TaskSession>(result[0].columns, row));
+}
+
+export function getSessionTasks(sessionId: string): TaskSession[] {
+  const database = getDatabaseSync();
+  const result = database.exec(
+    'SELECT * FROM task_sessions WHERE session_id = ? ORDER BY started_at DESC',
+    [sessionId],
+  );
+  if (!result[0]) return [];
+  return result[0].values.map((row: any[]) => rowToObj<TaskSession>(result[0].columns, row));
+}
+
+export function hasActiveSession(taskId: number): boolean {
+  const database = getDatabaseSync();
+  const result = database.exec(
+    "SELECT COUNT(*) as count FROM task_sessions WHERE task_id = ? AND status = 'active'",
+    [taskId],
+  );
+  if (!result[0]?.values[0]) return false;
+  return (result[0].values[0][0] as number) > 0;
 }

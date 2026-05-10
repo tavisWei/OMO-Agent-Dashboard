@@ -66,6 +66,7 @@ const DEFAULT_MODELS = [
 
 export function runMigrations(db: Database): void {
   db.run(ALL_SCHEMA);
+  ensureColumn(db, 'projects', 'directory', 'TEXT');
   ensureColumn(db, 'agents', 'source', "TEXT NOT NULL DEFAULT 'ui_created'");
   db.run("UPDATE agents SET source = 'ui_created' WHERE source IS NULL OR source = ''");
   ensureAgentsModelIdForeignKey(db);

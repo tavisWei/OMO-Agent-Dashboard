@@ -4,6 +4,14 @@ import { useDashboardStore } from '../stores/dashboardStore';
 import { useTranslation } from 'react-i18next';
 import { getAgentMeta } from '../lib/agentMeta';
 
+const todoStatusMap: Record<string, string> = {
+  completed: 'status.completed',
+  in_progress: 'status.inProgress',
+  pending: 'status.queued',
+  failed: 'status.error',
+  cancelled: 'status.stopped',
+};
+
 const statusColors: Record<AgentRuntime['status'], string> = {
   queued: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
   idle: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
@@ -17,7 +25,7 @@ const statusColors: Record<AgentRuntime['status'], string> = {
 
 export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
   const { t } = useTranslation();
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const sessions = useDashboardStore((state) => state.sessions);
   const projects = useDashboardStore((state) => state.projects);
 
@@ -26,7 +34,7 @@ export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
 
   const lastUpdate = agent.lastUpdate
     ? new Date(agent.lastUpdate).toLocaleTimeString()
-    : 'Never';
+    : t('common.never');
 
   const agentMeta = getAgentMeta(session?.agentLabel);
 
@@ -50,16 +58,16 @@ export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
           <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)] font-mono">
             <span>{session?.agentLabel ?? agent.sessionName ?? agent.agentId}</span>
             <span>•</span>
-            <span>Updated: {lastUpdate}</span>
+            <span>{t('agents.updated')} {lastUpdate}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col justify-end">
+      <div className="flex-1 flex flex-col">
         {session ? (
           <div className="mt-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)] border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">OpenCode Session</span>
+              <span className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('agents.openCodeSession')}</span>
               {project && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                   {project.name}
@@ -67,7 +75,7 @@ export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
               )}
             </div>
             <p className="text-sm text-[var(--color-text)] font-medium line-clamp-1">
-              {session.model ?? 'unknown model'}
+              {session.model ?? t('agents.unknownModel')}
             </p>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-slate-500/20 text-[var(--color-text-secondary)] border border-[var(--color-border)]">
@@ -98,7 +106,7 @@ export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[var(--color-text)]">{todo.content}</span>
-                      <span className="text-[var(--color-text-secondary)] whitespace-nowrap">{todo.status}</span>
+                      <span className="text-[var(--color-text-secondary)] whitespace-nowrap">{t(todoStatusMap[todo.status] || 'status.queued')}</span>
                     </div>
                   </div>
                 ))}
@@ -108,7 +116,7 @@ export function AgentRuntimeCard({ agent }: { agent: AgentRuntime }) {
         ) : (
           <div className="mt-2 p-3 rounded-lg bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] border-dashed flex items-center justify-center">
             <span className="text-sm text-[var(--color-text-secondary)]">
-              No correlated session details
+              {t('agents.noCorrelatedSession')}
             </span>
           </div>
         )}

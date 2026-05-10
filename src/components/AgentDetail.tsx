@@ -1,8 +1,11 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { ROUTES } from '../routes';
+import { AgentExecutionSteps } from './AgentExecutionSteps';
+import { EvidenceChain } from './EvidenceChain';
+import type { PartRow } from '../types/opencode';
 
 const statusColors: Record<string, string> = {
   queued: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
@@ -18,6 +21,26 @@ export function AgentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { sessions, isLoading } = useDashboardStore();
+
+  // Session parts — fetched from /api/sessions/:id/parts
+  const [parts, setParts] = useState<PartRow[]>([]);
+
+  // Fetch parts for this session
+  useEffect(() => {
+    if (!id) return;
+    const fetchParts = async () => {
+      try {
+        const resp = await fetch(`/api/sessions/${id}/parts`);
+        if (resp.ok) {
+          const data = await resp.json() as PartRow[];
+          setParts(data);
+        }
+      } catch {
+        // silently ignore fetch errors
+      }
+    };
+    fetchParts();
+  }, [id]);
 
   const session = useMemo(() => sessions.find((entry) => entry.id === id) ?? null, [sessions, id]);
 
@@ -102,6 +125,26 @@ export function AgentDetail() {
           </div>
         )}
       </div>
+
+      {/* Agent Execution Steps */}
+      <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-5">
+        <AgentExecutionSteps parts={parts} />
+      </div>
+
+      {/* Evidence Chain (collapsible) */}
+      <details className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-5 group">
+        <summary className="cursor-pointer list-none">
+          <h2 className="text-lg font-semibold text-[var(--color-text)] inline-flex items-center gap-2">
+            Evidence Chain
+            <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </h2>
+        </summary>
+        <div className="mt-4">
+          <EvidenceChain parts={parts} />
+        </div>
+      </details>
     </div>
   );
 }

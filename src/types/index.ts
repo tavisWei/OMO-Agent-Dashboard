@@ -103,7 +103,10 @@ export interface AgentDistributionData {
 }
 
 // Task status type
-export type TaskStatus = 'backlog' | 'in_progress' | 'done' | 'failed';
+export type TaskStatus = 'backlog' | 'in_progress' | 'review_required' | 'needs_fix' | 'blocked' | 'done' | 'failed';
+
+// Kanban column identifier — decoupled from TaskStatus
+export type KanbanColumnId = 'backlog' | 'todo' | 'in_progress' | 'in_review' | 'blocked' | 'done';
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
 
@@ -270,7 +273,7 @@ export interface TaskDetailResponse {
 
 // Column definition for Kanban
 export interface KanbanColumn {
-  id: TaskStatus;
+  id: KanbanColumnId;
   title: string;
   color: string;
 }
@@ -292,4 +295,13 @@ export interface ActivityLogsResponse {
   hasMore: boolean;
   limit: number;
   offset: number;
+}
+
+// Task session - links OpenCode sessions to dashboard tasks
+export interface TaskSession {
+  task_id: number;
+  session_id: string;
+  started_at: string | null;
+  completed_at: string | null;
+  status: 'active' | 'completed';
 }

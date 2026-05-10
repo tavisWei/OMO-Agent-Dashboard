@@ -3,6 +3,7 @@ import {
   getDashboardSnapshot,
   getOpenCodeSessionById,
   getOpenCodeSessionMessages,
+  getOpenCodeSessionParts,
   getOpenCodeSessionTodos,
   getOpenCodeSessionTree,
 } from '../opencode-reader.js';
@@ -77,6 +78,20 @@ router.get('/:id/messages', (req, res) => {
   }
 
   return res.json(messages.data);
+});
+
+router.get('/:id/parts', (req, res) => {
+  const limit = typeof req.query.limit === 'string' ? Number.parseInt(req.query.limit, 10) : 200;
+  const offset = typeof req.query.offset === 'string' ? Number.parseInt(req.query.offset, 10) : 0;
+  const parts = getOpenCodeSessionParts(
+    req.params.id,
+    Number.isFinite(limit) ? limit : 200,
+    Number.isFinite(offset) ? offset : 0,
+  );
+  if (parts.error) {
+    return res.json({ parts: [], error: parts.error.message });
+  }
+  return res.json(parts.data);
 });
 
 export default router;
