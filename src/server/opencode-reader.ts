@@ -3,7 +3,7 @@ import path from 'node:path';
 import Database from 'better-sqlite3';
 import type { DashboardProjectGroup, DashboardSession, DashboardSessionTreeNode, DashboardOverview } from '../types/domain.js';
 import type { OpenCodeMessageMeta, OpenCodeMessageRow, OpenCodeProjectRow, OpenCodeSessionQuery, OpenCodeSessionRow, OpenCodeTodoRow, PartRow } from '../types/opencode.js';
-import { toDashboardSession, toOverview, toProjectGroups, toSessionTree } from './adapter.js';
+import { aggregateTreeStatuses, toDashboardSession, toOverview, toProjectGroups, toSessionTree } from './adapter.js';
 
 export interface ReaderError {
   code: 'DB_NOT_FOUND' | 'DB_OPEN_FAILED' | 'DB_QUERY_FAILED';
@@ -73,6 +73,15 @@ function getConnection(): ReaderResult<Database.Database> {
   }
 }
 
+function safeParsePartData(raw: string): { type: string; text?: string } | null {
+  try {
+    const parsed = JSON.parse(raw) as { type: string; text?: string };
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function mapSessions(rows: OpenCodeSessionRow[], db: Database.Database): DashboardSession[] {
   const todoStmt = db.prepare(`
     SELECT session_id, content, status, priority, position, time_created, time_updated
@@ -87,6 +96,15 @@ function mapSessions(rows: OpenCodeSessionRow[], db: Database.Database): Dashboa
     ORDER BY time_created DESC
     LIMIT 10
   `);
+  const lastTextPartStmt = db.prepare(`
+    SELECT p.data
+    FROM part p
+    JOIN message m ON p.message_id = m.id
+    WHERE m.session_id = ?
+      AND json_extract(p.data, '$.type') = 'text'
+    ORDER BY p.time_created DESC
+    LIMIT 5
+  `);
 
   return rows.map((row) => {
     const todos = todoStmt.all(row.id) as OpenCodeTodoRow[];
@@ -95,8 +113,17 @@ function mapSessions(rows: OpenCodeSessionRow[], db: Database.Database): Dashboa
         ...message,
         parsed: safeParseMessageMeta(message.data),
       }));
+    const lastTextPartRows = lastTextPartStmt.all(row.id) as Array<{ data: string }>;
+    let lastMessageText: string | null = null;
+    for (const row of lastTextPartRows) {
+      const parsed = safeParsePartData(row.data);
+      if (parsed?.text) {
+        lastMessageText = parsed.text;
+        break;
+      }
+    }
 
-    return toDashboardSession(row, todos, messages);
+    return toDashboardSession(row, todos, messages, lastMessageText);
   });
 }
 
@@ -309,9 +336,11 @@ export function getDashboardSnapshot(query: OpenCodeSessionQuery = {}): Dashboar
   const projectsResult = getOpenCodeProjects();
   const error = sessionsResult.error ?? projectsResult.error;
   const projects = toProjectGroups(sessionsResult.data, projectsResult.data);
+  const tree = toSessionTree(sessionsResult.data);
+  aggregateTreeStatuses(tree);
   return {
     sessions: sessionsResult.data,
-    tree: toSessionTree(sessionsResult.data),
+    tree,
     projects,
     overview: toOverview(sessionsResult.data, projects),
     error,

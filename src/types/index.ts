@@ -106,7 +106,7 @@ export interface AgentDistributionData {
 export type TaskStatus = 'backlog' | 'in_progress' | 'review_required' | 'needs_fix' | 'blocked' | 'done' | 'failed';
 
 // Kanban column identifier — decoupled from TaskStatus
-export type KanbanColumnId = 'backlog' | 'todo' | 'in_progress' | 'in_review' | 'blocked' | 'done';
+export type KanbanColumnId = 'todo' | 'in_progress' | 'done' | 'cancelled';
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
 

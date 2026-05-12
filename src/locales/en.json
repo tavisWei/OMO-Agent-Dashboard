@@ -116,7 +116,10 @@
   "status": {
     "running": "Running",
     "queued": "Queued",
+    "pending": "Pending",
     "completed": "Completed",
+    "inProgress": "In Progress",
+    "cancelled": "Cancelled",
     "queuedHint": "Queued means the session is not currently thinking, running, or completed, and is waiting for the next action.",
     "error": "Error",
     "stopped": "Stopped",
@@ -189,7 +192,33 @@
     "card": {
       "noSessions": "No sessions",
       "oneSession": "1 session",
-      "sessions": "{{count}} sessions"
+      "sessions": "{{count}} sessions",
+      "root": "Root",
+      "child": "Child",
+      "depth": "Depth",
+      "parent": "Parent",
+      "rationale": "Rationale",
+      "blocker": "Blocker",
+      "risk": "Risk",
+      "noOutput": "No output",
+      "todoSummary": "Todo summary",
+      "recent": "Recent",
+      "orphan": "Orphan",
+      "noTodos": "No todos yet",
+      "inProgress": "in progress",
+      "pending": "pending",
+      "done": "done",
+      "cancelled": "cancelled",
+      "todosCancelledFailed": "{{count}} todo(s) cancelled/failed",
+      "noGitActivity": "No git activity yet",
+      "allTodosPending": "All todos still pending",
+      "role": "Role: {{role}}",
+      "mode": "Mode: {{mode}}",
+      "filesChanged": "{{count}} file(s) changed",
+      "updated": "Updated {{date}}",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "daysAgo": "{{count}}d ago"
     },
     "dragHandle": "Drag handle"
   },
@@ -332,5 +361,42 @@
     "inputTokens": "Input Tokens",
     "outputTokens": "Output Tokens",
     "loading": "Loading..."
+  },
+  "workboard": {
+    "status": {
+      "running": "Running",
+      "thinking": "Thinking",
+      "queued": "Queued",
+      "completed": "Completed",
+      "error": "Error",
+      "idle": "Idle",
+      "stopped": "Stopped",
+      "offline": "Offline",
+      "active": "Active"
+    },
+    "untitledSession": "Untitled Session",
+    "untitledTree": "Untitled Tree",
+    "todos": "Todos",
+    "inProgress": "in progress",
+    "pending": "pending",
+    "done": "Done",
+    "failed": "failed",
+    "filesChanged": "files changed",
+    "runningCount": "{{count}} running",
+    "errorCount": "{{count}} error",
+    "todosCount": "{{completed}}/{{total}} todos",
+    "nodesCount": "{{count}} nodes",
+    "tokens": "tokens",
+    "clear": "Clear",
+    "clickToExpand": "Click to view full content",
+    "messageContent": "Message Content",
+    "noTreesMatch": "No trees match the selected filters",
+    "project": "Project",
+    "time": {
+      "justNow": "just now",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "daysAgo": "{{count}}d ago"
+    }
   }
 }

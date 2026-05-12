@@ -44,6 +44,7 @@ export interface DashboardSession {
   todos: DashboardTodo[];
   raw: OpenCodeSessionRow;
   lastMessage: OpenCodeMessageMeta | null;
+  lastMessageText: string | null;
 }
 
 export interface DashboardSessionTreeNode extends DashboardSession {

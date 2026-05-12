@@ -57,6 +57,19 @@ export interface OpenCodeMessageMeta {
   };
   modelID?: string;
   providerID?: string;
+  finish_reason?: string;
+  finish?: string;
+  tool_calls?: Array<{
+    id: string;
+    function: {
+      name: string;
+      arguments?: string;
+    };
+  }>;
+  content?: Array<{
+    type: string;
+    text?: string;
+  }>;
   time?: {
     created?: number;
   };

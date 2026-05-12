@@ -29,6 +29,7 @@ export interface DashboardSession {
   outputTokens: number;
   reasoningTokens: number;
   lastMessageAt: string | null;
+  lastMessageText: string | null;
   createdAt: string;
   updatedAt: string;
   todos: DashboardTodo[];

@@ -7,9 +7,9 @@ import { getAgentMeta } from '../lib/agentMeta';
 const todoStatusMap: Record<string, string> = {
   completed: 'status.completed',
   in_progress: 'status.inProgress',
-  pending: 'status.queued',
+  pending: 'status.pending',
   failed: 'status.error',
-  cancelled: 'status.stopped',
+  cancelled: 'status.cancelled',
 };
 
 const statusColors: Record<AgentRuntime['status'], string> = {

@@ -39,10 +39,30 @@ export function inferSessionStatus(
   }
 
   if (todos.length === 0) {
-    return totalTokens > 0 || !isRecentlyActive ? 'completed' : 'queued';
+    if (!isRecentlyActive) return 'completed';
+
+    // Infer from last message role for single-task sessions
+    const role = parsed?.role;
+    const finishReason = parsed?.finish_reason ?? parsed?.finish;
+    const hasToolCalls = parsed?.tool_calls && parsed.tool_calls.length > 0;
+
+    if (role === 'user') return 'running';
+    if (role === 'tool') return 'running';
+    if (role === 'assistant') {
+      if (finishReason === 'stop' && totalTokens > 0) return 'completed';
+      if (hasToolCalls) return 'running';
+      if (totalTokens === 0 && isRecentlyActive) return 'running';
+      if (totalTokens > 0 && !finishReason) return 'running';
+      return 'queued';
+    }
+
+    return 'queued';
   }
 
   if (todos.length > 0 && todos.every((todo) => todo.status === 'completed')) {
+    if (isRecentlyActive && parsed?.role === 'assistant' && !parsed?.finish && !parsed?.finish_reason) {
+      return 'running';
+    }
     return 'completed';
   }
 
@@ -70,6 +90,7 @@ export function toDashboardSession(
   session: OpenCodeSessionRow,
   todos: OpenCodeTodoRow[],
   messages: OpenCodeMessageRow[],
+  lastMessageText: string | null = null,
 ): DashboardSession {
   const lastMessage = messages[0] ?? null;
   const parsed = lastMessage?.parsed ?? null;
@@ -105,6 +126,7 @@ export function toDashboardSession(
     todos: toDashboardTodos(todos),
     raw: session,
     lastMessage: parsed,
+    lastMessageText,
   };
 }
 
@@ -128,6 +150,47 @@ export function toSessionTree(sessions: DashboardSession[]): DashboardSessionTre
   });
 
   return roots.sort((left, right) => right.raw.time_updated - left.raw.time_updated);
+}
+
+
+const STATUS_PRIORITY: Record<string, number> = {
+  error: 7,
+  running: 6,
+  thinking: 5,
+  queued: 4,
+  idle: 3,
+  completed: 2,
+  stopped: 1,
+  offline: 0,
+};
+
+function getPriority(status: string): number {
+  return STATUS_PRIORITY[status] ?? 0;
+}
+
+function getMostActiveStatus(statuses: string[]): string {
+  if (statuses.length === 0) return 'completed';
+  return statuses.reduce((best, current) =>
+    getPriority(current) > getPriority(best) ? current : best,
+  );
+}
+
+function collectTreeStatuses(node: DashboardSessionTreeNode): string[] {
+  const statuses: string[] = [node.status];
+  for (const child of node.children) {
+    statuses.push(...collectTreeStatuses(child));
+  }
+  return statuses;
+}
+
+export function aggregateTreeStatuses(roots: DashboardSessionTreeNode[]): void {
+  for (const root of roots) {
+    const allStatuses = collectTreeStatuses(root);
+    const aggregated = getMostActiveStatus(allStatuses);
+    if (aggregated !== root.status) {
+      root.status = aggregated as AgentStatus;
+    }
+  }
 }
 
 export function toProjectGroups(
