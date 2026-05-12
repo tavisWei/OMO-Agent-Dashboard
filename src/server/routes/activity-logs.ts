@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { createActivityLog, getDatabaseSync } from '../../db/index.js';
+import { createActivityLog } from '../../db/index.js';
 import { getDashboardSnapshot } from '../opencode-reader.js';
 
 const router = Router();
 
 // Activity types for filtering and display
-export type ActivityType = 'started' | 'stopped' | 'error' | 'config_changed' | 'task_assigned' | 'task_completed';
+export type ActivityType = 'started' | 'stopped' | 'error' | 'config_changed' | 'task_assigned' | 'task_completed' | 'session_started';
 
 interface ActivityLogWithAgent {
   id: number;
@@ -34,37 +34,10 @@ router.get('/', (req, res) => {
 
     let logs: ActivityLogWithAgent[];
 
-    // Try reading from persistent activity_logs table first
-    const db = getDatabaseSync();
-    try {
-      const dbLogs = db.exec(
-        'SELECT id, agent_id, agent_name, action, details, created_at FROM activity_logs ORDER BY created_at DESC LIMIT ? OFFSET ?',
-        [limitNum + 1, offsetNum]
-      );
-      if (dbLogs[0] && dbLogs[0].values.length > 0) {
-        logs = dbLogs[0].values.map((row: any[]) => ({
-          id: row[0] as number,
-          agent_id: row[1] as string | null,
-          agent_name: row[2] as string | null,
-          action: row[3] as string,
-          details: row[4] as string,
-          created_at: row[5] as string,
-        }));
-      } else {
-        // Fallback to synthetic data if table is empty
-        if (agentId) {
-          logs = getActivityLogsBySession(agentId, limitNum + 1, offsetNum);
-        } else {
-          logs = getRecentActivityLogsWithName(limitNum + 1, offsetNum, project);
-        }
-      }
-    } catch {
-      // Fallback on DB error
-      if (agentId) {
-        logs = getActivityLogsBySession(agentId, limitNum + 1, offsetNum);
-      } else {
-        logs = getRecentActivityLogsWithName(limitNum + 1, offsetNum, project);
-      }
+    if (agentId) {
+      logs = getActivityLogsBySession(agentId, limitNum + 1, offsetNum);
+    } else {
+      logs = getRecentActivityLogsWithName(limitNum + 1, offsetNum, project);
     }
 
     // Filter by type if specified

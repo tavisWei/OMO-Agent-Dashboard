@@ -20,9 +20,10 @@ const actionKeyMap: Record<string, string> = {
   config_changed: 'activity.configChanged',
   task_assigned: 'activity.taskAssigned',
   task_completed: 'activity.taskCompleted',
+  session_started: 'activity.sessionStarted',
 };
 
-function formatRelativeTime(dateString: string): string {
+function formatRelativeTime(dateString: string, t: (key: string) => string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -31,10 +32,10 @@ function formatRelativeTime(dateString: string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffSecs < 60) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffSecs < 60) return t('activity.justNow');
+  if (diffMins < 60) return `${diffMins}${t('activity.minutesAgo')}`;
+  if (diffHours < 24) return `${diffHours}${t('activity.hoursAgo')}`;
+  if (diffDays < 7) return `${diffDays}${t('activity.daysAgo')}`;
   return date.toLocaleDateString();
 }
 
@@ -49,7 +50,7 @@ interface ActivityItemProps {
 
 function ActivityItem({ log, compact = false }: ActivityItemProps) {
   const { t } = useTranslation();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const config = ACTIVITY_ICONS[log.action] || ACTIVITY_ICONS.config_changed;
   const hasDetails = log.details && log.details.trim().length > 0;
 
@@ -76,7 +77,7 @@ function ActivityItem({ log, compact = false }: ActivityItemProps) {
               className={`text-[10px] text-[var(--color-text-secondary)] cursor-help flex-shrink-0`}
               title={formatAbsoluteTime(log.created_at)}
             >
-              {formatRelativeTime(log.created_at)}
+              {formatRelativeTime(log.created_at, t)}
             </span>
           </div>
 
@@ -88,7 +89,7 @@ function ActivityItem({ log, compact = false }: ActivityItemProps) {
                 className="text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-accent)] transition-colors flex items-center gap-1"
               >
                 <span>{isExpanded ? '▼' : '▶'}</span>
-                <span>{isExpanded ? 'Hide details' : 'Show details'}</span>
+                <span>{isExpanded ? t('activity.hideDetails') : t('activity.showDetails')}</span>
               </button>
               {isExpanded && (
                 <div className="mt-2 p-2 bg-[var(--color-bg-primary)] rounded border border-[var(--color-border)]">
@@ -132,21 +133,33 @@ export function ActivityFeed({ refreshInterval = 15000, compact = false }: Activ
     .map((session) => ({ id: session.id, name: session.agentLabel || session.title }))
     .filter((agent, index, all) => all.findIndex((entry) => entry.id === agent.id) === index);
 
-  // Sync filters to store and fetch
   useEffect(() => {
     setFilters({ types: selectedTypes, agentId: selectedAgentId, timeRange, project: selectedProjectId ?? null });
-    fetchLogs(true);
-  }, [selectedTypes, selectedAgentId, timeRange, selectedProjectId, setFilters, fetchLogs]);
+  }, [selectedTypes, selectedAgentId, timeRange, selectedProjectId, setFilters]);
 
-  // Auto-refresh
   useEffect(() => {
     if (refreshInterval <= 0) return;
 
-    const interval = setInterval(() => {
-      fetchLogs(true);
-    }, refreshInterval);
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    let isMounted = true;
 
-    return () => clearInterval(interval);
+    function scheduleNext(): void {
+      timeout = setTimeout(() => {
+        if (!isMounted) return;
+        fetchLogs(true).catch(() => {}).finally(() => {
+          if (isMounted) scheduleNext();
+        });
+      }, refreshInterval);
+    }
+
+    fetchLogs(true).catch(() => {}).finally(() => {
+      if (isMounted) scheduleNext();
+    });
+
+    return () => {
+      isMounted = false;
+      if (timeout) clearTimeout(timeout);
+    };
   }, [refreshInterval, fetchLogs]);
 
   const toggleType = (type: ActivityType) => {
@@ -167,7 +180,7 @@ export function ActivityFeed({ refreshInterval = 15000, compact = false }: Activ
     <div className={`flex flex-col h-full bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] overflow-hidden ${compact ? 'text-sm' : ''}`}>
       {!compact && (
         <div className="p-4 border-b border-[var(--color-border)] space-y-3">
-          <h3 className="text-sm font-semibold text-[var(--color-text)]">Filters</h3>
+          <h3 className="text-sm font-semibold text-[var(--color-text)]">{t('activity.filters')}</h3>
           
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex flex-wrap gap-2">
@@ -197,7 +210,7 @@ export function ActivityFeed({ refreshInterval = 15000, compact = false }: Activ
                 onChange={e => setSelectedAgentId(e.target.value || null)}
                 className="px-3 py-1.5 rounded-lg text-xs bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
               >
-                <option value="">All Sessions</option>
+                <option value="">{t('activity.allSessions')}</option>
                 {availableAgents.map(agent => (
                   <option key={agent.id} value={agent.id}>
                     {agent.name}
@@ -210,10 +223,10 @@ export function ActivityFeed({ refreshInterval = 15000, compact = false }: Activ
               onChange={e => setTimeRange(e.target.value)}
               className="px-3 py-1.5 rounded-lg text-xs bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
             >
-              <option value="all">All Time</option>
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
+              <option value="all">{t('activity.allTime')}</option>
+              <option value="today">{t('activity.today')}</option>
+              <option value="week">{t('activity.thisWeek')}</option>
+              <option value="month">{t('activity.thisMonth')}</option>
             </select>
           </div>
         </div>
@@ -228,7 +241,7 @@ export function ActivityFeed({ refreshInterval = 15000, compact = false }: Activ
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              <span className="text-sm">Loading activity...</span>
+              <span className="text-sm">{t('activity.loadingActivity')}</span>
             </div>
           </div>
         ) : error ? (
@@ -239,7 +252,7 @@ export function ActivityFeed({ refreshInterval = 15000, compact = false }: Activ
         ) : logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-[var(--color-text-secondary)]">
             <span className="text-2xl mb-2">📭</span>
-            <span className="text-sm">No activity logs found</span>
+            <span className="text-sm">{t('activity.noActivityLogs')}</span>
           </div>
         ) : (
           logs.map(log => <ActivityItem key={log.id} log={log} compact={compact} />)
@@ -261,10 +274,10 @@ export function ActivityFeed({ refreshInterval = 15000, compact = false }: Activ
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Loading...
+                {t('activity.loadingMore')}
               </span>
             ) : (
-              'Load More'
+              t('activity.loadMore')
             )}
           </button>
         </div>
